@@ -19,7 +19,7 @@ pub enum Atom {
 pub enum SExpr {
 	Atom(Atom),
 	List(Vec<SExpr>),
-	Tuple(Vec<SExpr>),
+	// Tuple(Vec<SExpr>),
 	Pair(Box<(SExpr, SExpr)>)
 }
 

@@ -4,95 +4,7 @@
 // Author: Lyzh
 //
 
-
-nil = { "#nil" }
-
-bool = { "#f" | "#t" }
-
-/*character =
- _{ ASCII_ALPHA
-  | "_"
-  | "\\\'"
-  | "\\\""
-  | "\\\\"
-  | "\\n"
-  | "\\t"
-  | "\\f"
-  | "\\r"
-  | '0'..'9'
-  }*/
-/*
-strcharacter =
- _{ character
-  | "\\\""
-  }
-*/
-
-escape =
-  { "\\\\"
-  | "\\'"
-  | "\\\""
-  | "\\r"
-  | "\\n"
-  }
-
-char = {
-    "'" ~ (!("'") ~ (escape | ANY)) ~ "'"
-}
-
-rstr = { (!("\\" | "\"") ~ ANY)+ }
-str = { "\"" ~ (escape | rstr)* ~ "\"" }
-
-/*
-str = {
-    "\"" ~ character* ~ "\""
-}*/
-
-digit = _{ '0'..'9' }
-
-uint = { digit ~ (digit | "_")* }
-// uint = { digit+ }
-int = { ("+" | "-")? ~ uint }
-float = { (int | uint) ~ "." ~ uint }
-rational = { int ~ "/" ~ int }
-
-sym = {
-  !(";"
-  | "'"
-  | "\""
-  | "/"
-  | "&"
-  | "#"
-  | "("
-  | ")"
-  | "["
-  | "]")
-  ~ ANY*
-  }
-
-atom =
-  { nil
-  | bool
-  | char
-  | str
-  | uint
-  | int
-  | float
-  | rational
-  | sym
-  }
-
-pair =
-  { "(" ~ sexpr ~ "." ~ sexpr ~ ")"
-  | "[" ~ sexpr ~ "." ~ sexpr ~ "]"
-}
-
-list =
-  { "(" ~ sexpr* ~ ")"
-  | "[" ~ sexpr* ~ "]"
-}
-
-quote = { "&" ~ sexpr }
+corn = _{ sexpr }
 
 sexpr =
   { atom
@@ -101,8 +13,75 @@ sexpr =
   | list
   }
 
-corn = _{ sexpr }
+list =
+ ${ "(" ~ WHITE_SPACE? ~ (sexpr ~ (WHITE_SPACE ~ sexpr)*)? ~ WHITE_SPACE? ~ ")"
+  | "[" ~ WHITE_SPACE? ~ (sexpr ~ (WHITE_SPACE ~ sexpr)*)? ~ WHITE_SPACE? ~ "]"
+}
 
+pair =
+  ${ "(" ~ WHITE_SPACE? ~ sexpr ~ WHITE_SPACE ~ "." ~ WHITE_SPACE ~ sexpr ~ WHITE_SPACE? ~ ")"
+  | "[" ~ WHITE_SPACE? ~ sexpr ~ WHITE_SPACE ~ "." ~ WHITE_SPACE ~ sexpr ~ WHITE_SPACE? ~ "]"
+}
+
+quote = { "&" ~ sexpr }
+
+
+atom =
+  { nil
+  | bool
+  | char
+  | raw_str
+  | str
+  | rational
+  | float
+  | int
+  | uint
+  | sym
+  }
+
+nil = { "#nil" }
+
+bool = { "#f" | "#t" }
+
+char = {
+    "'" ~ (!("'") ~ (escape | ANY)) ~ "'"
+}
+
+raw_str = { "r\"" ~ (!"\"" ~ ANY)* ~ "\""}
+str = { "\"" ~ (escape | rstr)* ~ "\"" }
+uint = { digit ~ (digit | "_")* }
+int = { ("+" | "-")? ~ uint }
+float = { (int | uint) ~ "." ~ uint }
+rational = { int ~ "/" ~ int }
+sym = { sym_char+ }
+
+escape =
+  _{ "\\\\"
+  | "\\'"
+  | "\\\""
+  | "\\t"
+  | "\\r"
+  | "\\n"
+  }
+
+rstr = _{ (!("\\" | "\"") ~ ANY)+ }
+
+digit = _{ '0'..'9' }
+
+sym_char = _{
+  !(";"
+  | "'"
+  | "."
+  | "\""
+  | "/"
+  | "&"
+  | "#"
+  | "("
+  | ")"
+  | "["
+  | "]"
+  | WHITE_SPACE) ~ ANY
+  }
 
 WHITESPACE =
   { " "

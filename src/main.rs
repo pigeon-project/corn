@@ -7,10 +7,9 @@ extern crate pest_derive;
 
 mod corn_kernals;
 
-use corn_kernals::parser;
-use crate::corn_kernals::parser::parse;
+use corn_kernals::parser::parse;
 
 fn main() {
     println!("Hello, world!");
-    println!("out: {:?}", parse("'\\n'"))
+    println!("out: {:?}", parse("(1 . 2)"))
 }
