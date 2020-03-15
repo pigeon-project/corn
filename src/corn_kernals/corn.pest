@@ -1,0 +1,92 @@
+//
+// Created by intellij-pest on 2020-03-14
+// corn
+// Author: Lyzh
+//
+
+
+nil = _{ "#nil" }
+
+bool = _{ "#f" | "#t" }
+
+character =
+ _{ ASCII_ALPHA
+  | "_"
+  | "\\\'"
+  | "\\\\"
+  | '0'..'9'
+  }
+
+char = {
+    "/" ~ character
+}
+
+strcharacter =
+ _{ character
+  | "\\\""
+  }
+
+str = {
+    "\"" ~ strcharacter* ~ "\""
+}
+
+uint = { ASCII_DIGIT+ }
+int = { ("+" | "-")? ~ uint }
+float = { (int | uint) ~ "." ~ uint }
+rational = { int ~ "/" ~ int }
+
+sym = {
+  !(";"
+  | "'"
+  | "/"
+  | "#"
+  | "("
+  | ")"
+  | "["
+  | "]")
+  ~ ANY*
+  }
+
+atom =
+  { nil
+  | bool
+  | char
+  | str
+  | uint
+  | int
+  | float
+  | rational
+  | sym
+  }
+
+pair =
+  { "(" ~ sexpr ~ "." ~ sexpr ~ ")"
+  | "[" ~ sexpr ~ "." ~ sexpr ~ "]"
+}
+
+list =
+  { "(" ~ sexpr* ~ ")"
+  | "[" ~ sexpr* ~ "]"
+}
+
+quote = { "'" ~ sexpr }
+
+sexpr =
+  { atom
+  | pair
+  | list
+  | quote
+  }
+
+corn = _{ EOI? ~ sexpr }
+
+
+WHITESPACE =
+  { " "
+  | "\t"
+  | NEWLINE
+  }
+
+COMMENT = {
+    (";;;" | ";;" | ";") ~ (!"\n" ~ ANY)* ~ "\n"
+}

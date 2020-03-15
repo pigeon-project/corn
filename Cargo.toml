@@ -1,0 +1,12 @@
+[package]
+name = "corn"
+version = "0.1.0"
+authors = ["Zhihang-Liu <enterindex@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1.0.104", features = ["derive"] }
+pest = "2.1.0"
+pest_derive = "2.1.0"
