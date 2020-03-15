@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 
 pub type Name = String;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Atom {
 	Nil,
 	Bool(bool),
@@ -15,7 +15,7 @@ pub enum Atom {
 	Sym(Name),
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum SExpr {
 	Atom(Atom),
 	List(Vec<SExpr>),
@@ -23,7 +23,7 @@ pub enum SExpr {
 	Pair(Box<(SExpr, SExpr)>)
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum Ast {
 	Lit(Atom),
 	Call(Vec<Ast>),

@@ -1,12 +1,65 @@
 use pest::Parser;
-use super::ast::{ Atom, SExpr };
+use pest::iterators::{Pair, Pairs};
+
+use super::ast::{Atom, Atom::*, SExpr, SExpr::* };
+use super::ast::Ast;
+use std::borrow::Borrow;
 
 
 #[derive(Parser)]
 #[grammar = "corn_kernals/corn.pest"]
 struct CornParser;
 
+fn escape(s: &str) -> String {
+	//FIXME:
+	println!("s: {}", s);
+	String::from(s)
+}
 
-fn parser(src: &str) {
-	let r: Result<_, _> = CornParser::parse(Rule::corn, src);
+fn parse_atom(node: &Pair<Rule>) -> Atom {
+	match node.as_rule() {
+		Rule::nil => Atom::Nil,
+		Rule::bool => Atom::Bool(
+			if node.as_span().as_str() == "#f" { false } else { true }),
+		Rule::int => Atom::Int(node.as_span().as_str().parse().unwrap()),
+		Rule::uint => Atom::Uint(node.as_span().as_str().parse().unwrap()),
+		Rule::float => Atom::Float(node.as_span().as_str().parse().unwrap()),
+		Rule::char => Atom::Char(*escape(
+			&node
+				.as_span()
+				.as_str()
+				.to_string()[1..node.as_span().as_str().len()-1])
+			.chars()
+			.collect::<Vec<char>>()
+			.get(0)
+			.unwrap()),
+		Rule::str => Atom::Str(escape(node.as_span().as_str())),
+		Rule::sym => Atom::Sym(node.as_span().as_str().parse().unwrap()),
+		_ => unreachable!()
+	}
+}
+
+fn parse_sexpr(node: &Pair<Rule>) -> SExpr {
+	eprintln!("out: {}", node);
+	match node.as_rule() {
+		Rule::atom => SExpr::Atom(
+			parse_atom(&node.clone()
+				.into_inner()
+				.next()
+				.unwrap())),
+		Rule::quote => List(vec![
+			SExpr::Atom(Sym(String::from("quote"))),
+			parse_sexpr(node.clone().into_inner().next().unwrap().borrow())
+		]),
+		_ => unreachable!()
+	}
+}
+
+pub fn parse(src: &str) -> Option<Vec<SExpr>> {
+	let r: Result<Pairs<Rule>, _> = CornParser::parse(Rule::corn, src);
+	// eprintln!("src result: {:?}", r);
+	Some(r
+		.ok()?
+		.map(|node| parse_sexpr(&node.into_inner().next().unwrap()))
+		.collect())
 }

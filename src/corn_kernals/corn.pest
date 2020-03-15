@@ -5,32 +5,53 @@
 //
 
 
-nil = _{ "#nil" }
+nil = { "#nil" }
 
-bool = _{ "#f" | "#t" }
+bool = { "#f" | "#t" }
 
-character =
+/*character =
  _{ ASCII_ALPHA
   | "_"
   | "\\\'"
+  | "\\\""
   | "\\\\"
+  | "\\n"
+  | "\\t"
+  | "\\f"
+  | "\\r"
   | '0'..'9'
-  }
-
-char = {
-    "/" ~ character
-}
-
+  }*/
+/*
 strcharacter =
  _{ character
   | "\\\""
   }
+*/
 
-str = {
-    "\"" ~ strcharacter* ~ "\""
+escape =
+  { "\\\\"
+  | "\\'"
+  | "\\\""
+  | "\\r"
+  | "\\n"
+  }
+
+char = {
+    "'" ~ (!("'") ~ (escape | ANY)) ~ "'"
 }
 
-uint = { ASCII_DIGIT+ }
+rstr = { (!("\\" | "\"") ~ ANY)+ }
+str = { "\"" ~ (escape | rstr)* ~ "\"" }
+
+/*
+str = {
+    "\"" ~ character* ~ "\""
+}*/
+
+digit = _{ '0'..'9' }
+
+uint = { digit ~ (digit | "_")* }
+// uint = { digit+ }
 int = { ("+" | "-")? ~ uint }
 float = { (int | uint) ~ "." ~ uint }
 rational = { int ~ "/" ~ int }
@@ -38,7 +59,9 @@ rational = { int ~ "/" ~ int }
 sym = {
   !(";"
   | "'"
+  | "\""
   | "/"
+  | "&"
   | "#"
   | "("
   | ")"
@@ -69,16 +92,16 @@ list =
   | "[" ~ sexpr* ~ "]"
 }
 
-quote = { "'" ~ sexpr }
+quote = { "&" ~ sexpr }
 
 sexpr =
   { atom
+  | quote
   | pair
   | list
-  | quote
   }
 
-corn = _{ EOI? ~ sexpr }
+corn = _{ sexpr }
 
 
 WHITESPACE =
