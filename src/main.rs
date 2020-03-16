@@ -1,6 +1,6 @@
 #![feature(asm)]
 #![feature(type_ascription)]
-#![feature(fixed_size_array)]
+#![feature(const_fn)]
 extern crate pest;
 #[macro_use]
 extern crate pest_derive;
@@ -8,8 +8,11 @@ extern crate pest_derive;
 mod corn_kernals;
 
 use std::io;
-use corn_kernals::parser::parse;
 use std::io::Write;
+use corn_kernals::parser::parse;
+use corn_kernals::preprocessor::macro_expand;
+use crate::corn_kernals::utils::nil;
+use crate::corn_kernals::context::CompileContext;
 
 fn repl() -> ! {
     loop {
@@ -23,6 +26,12 @@ fn repl() -> ! {
 
 fn main() {
     println!("Hello, world!");
-    println!("out: {:?}", parse("&(+ \"str\\r\\n\" 's') 1 3.2 4/5 ([] . [])"));
-    // repl()
+    // println!("out: {:?}", parse("&(+ \"str\\r\\n\" 's') 1 3.2 4/5 ([] . [])"));
+    repl()
+}
+
+#[test]
+fn macro_gulugulu() {
+    use corn_kernals::preprocessor;
+    macro_expand(&Default::default(), &nil());
 }

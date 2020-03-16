@@ -1,8 +1,10 @@
 use serde::{Serialize, Deserialize};
+use std::collections::HashMap;
+use std::sync::{Arc, RwLock};
 
 pub type Name = String;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Atom {
 	Nil,
 	Bool(bool),
@@ -15,7 +17,7 @@ pub enum Atom {
 	Sym(Name),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SExpr {
 	Atom(Atom),
 	List(Vec<SExpr>),
@@ -29,4 +31,21 @@ pub enum Ast {
 	Call(Vec<Ast>),
 	Lambda(Vec<Name>, Vec<Ast>),
 	Cond(Vec<(Ast, Ast)>, Option<Box<Ast>>)
+}
+
+
+#[derive(Debug)]
+pub enum MacroDefine {
+
+}
+
+#[derive(Debug)]
+pub struct FunctionDefine {
+
+}
+
+#[derive(Debug, Default)]
+pub struct CompileContext {
+	pub macro_defines   : RwLock<HashMap<String, Arc<MacroDefine>>>,
+	pub function_defines: RwLock<HashMap<String, Arc<FunctionDefine>>>,
 }
