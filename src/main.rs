@@ -23,6 +23,6 @@ fn repl() -> ! {
 
 fn main() {
     println!("Hello, world!");
-    println!("out: {:?}", parse("1 2"));
+    println!("out: {:?}", parse("&(+ \"str\\r\\n\" 's') 1 3.2 4/5 ([] . [])"));
     // repl()
 }

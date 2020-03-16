@@ -7,10 +7,10 @@
 corn = ${ (sexpr ~ (WHITE_SPACE ~ sexpr)*)? }
 
 sexpr =
-  { atom
-  | quote
+  { quote
   | pair
   | list
+  | atom
   }
 
 list =
@@ -23,7 +23,7 @@ pair =
   | "[" ~ WHITE_SPACE? ~ sexpr ~ WHITE_SPACE ~ "." ~ WHITE_SPACE ~ sexpr ~ WHITE_SPACE? ~ "]"
 }
 
-quote = { "&" ~ sexpr }
+quote = ${ "&" ~ sexpr }
 
 
 atom =

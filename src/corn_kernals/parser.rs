@@ -79,16 +79,22 @@ fn parse_atom(node: &Pair<Rule>) -> Atom {
 }
 
 fn parse_sexpr(node: &Pair<Rule>) -> SExpr {
+	eprintln!("show: {}", node);
 	match node.as_rule() {
 		Rule::atom => SExpr::Atom(
 			parse_atom(&node.clone()
 				.into_inner()
 				.next()
 				.unwrap())),
-		Rule::quote => List(vec![
-			SExpr::Atom(Sym(String::from("quote"))),
-			parse_sexpr(node.clone().into_inner().next().unwrap().borrow())
-		]),
+		Rule::quote => {
+			let r = node.clone()
+				.into_inner().next().unwrap()
+				.into_inner().next().unwrap();
+			List(vec![
+				SExpr::Atom(Sym(String::from("quote" ))),
+				parse_sexpr(&r)
+			])
+		}
 		Rule::pair => {
 			let mut i = node.clone().into_inner();
 			let l = i.next().unwrap();
