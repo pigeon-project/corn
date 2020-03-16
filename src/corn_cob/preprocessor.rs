@@ -1,41 +1,63 @@
 use std::sync::Arc;
-use super::context::CompileContext;
-use super::context::{ SExpr, Atom::* };
+use super::context::{
+	SExpr,
+	Atom::*,
+	CResult,
+	MacroDefine,
+	CompileError,
+	CompileContext };
 use super::utils::*;
-use crate::corn_cob::context::MacroDefine;
 
 
+/*
 fn dyn_match(c: &CompileContext, list: &Vec<SExpr>) -> SExpr {
 	match list.as_slice() {
 		_ => unimplemented!(),
 	}
 }
+*/
 
-fn apply_macro(macro_define: &Arc<MacroDefine>, sexprs: &[SExpr]) -> SExpr {
-	unimplemented!()
+fn apply_macro(macro_define: &Arc<MacroDefine>, sexprs: &[SExpr]) -> CResult {
+	match &**macro_define {
+		MacroDefine::ProcessMacro(fun) => (fun.1)(sexprs),
+		MacroDefine::SyntaxRule(r) => {
+			unimplemented!()
+		}
+	}
 }
 
-fn list_match(c: &CompileContext, list: &Vec<SExpr>) -> SExpr {
-	let r: Vec<SExpr> = list
+fn list_match(c: &CompileContext, list: &Vec<SExpr>) -> CResult {
+	let r: Vec<CResult> = list
 		.iter()
 		.map(|l| macro_expand(c, l))
 		.collect();
-	if let Some(SExpr::Atom(Sym(n))) =  r.get(0) {
+	let errlog = r
+		.iter()
+		.filter(|e| if let Err(_) = e { true } else { false }).collect::<Vec<_>>();
+	if errlog.len() > 0 {
+		//FIXME: 错误处理
+		return Err(CompileError());
+	}
+	let r: Vec<SExpr> = r
+		.into_iter()
+		.map(|l| l.unwrap())
+		.collect();
+	if let Some(SExpr::Atom(Sym(n))) = r.get(0) {
 		if let Some(m) = c.macro_defines
 			.read().unwrap()
 			.get(n) {
 			apply_macro(m, &r[1..])
 		} else {
-			SExpr::List(r)
+			Ok(SExpr::List(r))
 		}
 	} else {
-		SExpr::List(r)
+		Ok(SExpr::List(r))
 	}
 }
 
-pub fn macro_expand(c: &CompileContext, src: &SExpr) -> SExpr {
+pub fn macro_expand(c: &CompileContext, src: &SExpr) -> CResult {
 	match src {
-		SExpr::Atom(_) => (*src).clone(),
+		SExpr::Atom(_) => Ok((*src).clone()),
 		SExpr::Pair(_) => unimplemented!(),
 		SExpr::List(r) => list_match(c, r)
 	}

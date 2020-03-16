@@ -1,6 +1,9 @@
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
+use serde::export::fmt::{Debug, Error};
+use serde::export::Formatter;
+use std::path::Display;
 
 pub type Name = String;
 
@@ -33,10 +36,31 @@ pub enum Ast {
 	Cond(Vec<(Ast, Ast)>, Option<Box<Ast>>)
 }
 
+// Process macro native interface
+// #[derive(Clone)]
+
+#[derive(Debug)]
+pub struct CompileError ();
+
+pub type CResult = Result<SExpr, CompileError>;
+
+pub struct PMNI (pub Name, pub fn(sexprs: &[SExpr]) -> CResult);
+
+impl Debug for PMNI {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		write!(f, "<procecc-macro '{}'>", self.0)
+	}
+}
+
+#[derive(Debug)]
+pub enum SyntaxRuleDefine {
+
+}
 
 #[derive(Debug)]
 pub enum MacroDefine {
-
+	ProcessMacro(PMNI),
+	SyntaxRule(SyntaxRuleDefine)
 }
 
 #[derive(Debug)]
