@@ -2,7 +2,7 @@ use std::sync::Arc;
 use super::context::CompileContext;
 use super::context::{ SExpr, Atom::* };
 use super::utils::*;
-use crate::corn_kernals::context::MacroDefine;
+use crate::corn_cob::context::MacroDefine;
 
 
 fn dyn_match(c: &CompileContext, list: &Vec<SExpr>) -> SExpr {

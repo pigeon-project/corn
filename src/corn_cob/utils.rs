@@ -1,5 +1,5 @@
-use crate::corn_kernals::context::SExpr;
-use crate::corn_kernals::context::Atom;
+use crate::corn_cob::context::SExpr;
+use crate::corn_cob::context::Atom;
 
 pub const fn nil() -> SExpr {
 	SExpr::Atom(Atom::Nil)

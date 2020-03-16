@@ -5,14 +5,14 @@ extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
-mod corn_kernals;
+mod corn_cob;
 
 use std::io;
 use std::io::Write;
-use corn_kernals::parser::parse;
-use corn_kernals::preprocessor::macro_expand;
-use crate::corn_kernals::utils::nil;
-use crate::corn_kernals::context::CompileContext;
+use corn_cob::parser::parse;
+use corn_cob::preprocessor::macro_expand;
+use crate::corn_cob::utils::nil;
+use crate::corn_cob::context::CompileContext;
 
 fn repl() -> ! {
     loop {
@@ -32,6 +32,6 @@ fn main() {
 
 #[test]
 fn macro_gulugulu() {
-    use corn_kernals::preprocessor;
+    use corn_cob::preprocessor;
     macro_expand(&Default::default(), &nil());
 }
