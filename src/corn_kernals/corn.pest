@@ -4,7 +4,7 @@
 // Author: Lyzh
 //
 
-corn = _{ sexpr }
+corn = ${ (sexpr ~ (WHITE_SPACE ~ sexpr)*)? }
 
 sexpr =
   { atom
@@ -34,8 +34,8 @@ atom =
   | str
   | rational
   | float
-  | int
   | uint
+  | int
   | sym
   }
 
@@ -47,13 +47,13 @@ char = {
     "'" ~ (!("'") ~ (escape | ANY)) ~ "'"
 }
 
-raw_str = { "r\"" ~ (!"\"" ~ ANY)* ~ "\""}
-str = { "\"" ~ (escape | rstr)* ~ "\"" }
-uint = { digit ~ (digit | "_")* }
-int = { ("+" | "-")? ~ uint }
-float = { (int | uint) ~ "." ~ uint }
-rational = { int ~ "/" ~ int }
-sym = { sym_char+ }
+raw_str = ${ "r\"" ~ (!"\"" ~ ANY)* ~ "\""}
+str = ${ "\"" ~ (escape | rstr)* ~ "\"" }
+uint = ${ digit ~ (digit | "_")* }
+int = ${ ("+" | "-")? ~ uint }
+float = ${ (int | uint) ~ "." ~ uint }
+rational = ${ int ~ "/" ~ int }
+sym = ${ sym_char+ }
 
 escape =
   _{ "\\\\"

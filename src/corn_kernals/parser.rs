@@ -45,6 +45,8 @@ fn escape(s: &str) -> String {
 }
 
 fn parse_atom(node: &Pair<Rule>) -> Atom {
+	eprintln!("out: {}", node);
+	eprintln!("span: {}", node.as_span().as_str());
 	match node.as_rule() {
 		Rule::nil   => Atom::Nil,
 		Rule::bool  => Atom::Bool(
@@ -77,7 +79,6 @@ fn parse_atom(node: &Pair<Rule>) -> Atom {
 }
 
 fn parse_sexpr(node: &Pair<Rule>) -> SExpr {
-	eprintln!("out: {}", node);
 	match node.as_rule() {
 		Rule::atom => SExpr::Atom(
 			parse_atom(&node.clone()
@@ -109,9 +110,14 @@ fn parse_sexpr(node: &Pair<Rule>) -> SExpr {
 
 pub fn parse(src: &str) -> Option<Vec<SExpr>> {
 	let r: Result<Pairs<Rule>, _> = CornParser::parse(Rule::corn, src);
-	// eprintln!("src result: {:?}", r);
+	eprintln!("src result: {}", r.clone().ok()?);
 	Some(r
 		.ok()?
-		.map(|node| parse_sexpr(&node.into_inner().next().unwrap()))
+		.next().unwrap()
+		.into_inner()
+		.map(|node| parse_sexpr(
+			&node
+				.into_inner()
+				.next().unwrap()))
 		.collect())
 }
