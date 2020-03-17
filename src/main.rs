@@ -12,7 +12,8 @@ use std::io::Write;
 use corn_cob::parser::parse;
 use corn_cob::preprocessor::macro_expand;
 use crate::corn_cob::utils::nil;
-use crate::corn_cob::context::CompileContext;
+use crate::corn_cob::context::{CompileContext, SExpr, CResult};
+
 
 fn repl() -> ! {
     loop {
@@ -20,7 +21,14 @@ fn repl() -> ! {
         io::stdout().flush().unwrap();
         let mut input = String::new();
         std::io::stdin().read_line(&mut input).unwrap();
-        println!("out: {:?}", parse(input.trim()));
+        let r = parse(input.trim());
+        println!("raw out: {:?}", r);
+        if let Some(x) = r {
+            x.iter()
+                .map(|e| macro_expand(&Default::default(), e))
+                .map(|e| println!("macro-expand: {:?}", e)).collect::<Vec<_>>();
+            
+        }
     }
 }
 

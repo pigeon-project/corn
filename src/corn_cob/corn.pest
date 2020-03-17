@@ -8,7 +8,7 @@ corn = ${ (sexpr ~ (WHITE_SPACE ~ sexpr)*)? }
 
 sexpr =
   { quote
-  | pair
+//   | pair
   | list
   | atom
   }
@@ -32,7 +32,7 @@ atom =
   | char
   | raw_str
   | str
-  | rational
+//   | rational
   | float
   | uint
   | int
@@ -52,7 +52,7 @@ str = ${ "\"" ~ (escape | rstr)* ~ "\"" }
 uint = ${ digit ~ (digit | "_")* }
 int = ${ ("+" | "-")? ~ uint }
 float = ${ (int | uint) ~ "." ~ uint }
-rational = ${ int ~ "/" ~ int }
+// rational = ${ (float | uint | int) ~ "/" ~ (float | uint | int) }
 sym = ${ sym_char+ }
 
 escape =

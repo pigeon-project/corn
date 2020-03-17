@@ -1,5 +1,7 @@
 use std::sync::Arc;
+use std::collections::HashMap;
 use super::context::{
+	Name,
 	SExpr,
 	Atom::*,
 	CResult,
@@ -9,13 +11,9 @@ use super::context::{
 use super::utils::*;
 
 
-/*
-fn dyn_match(c: &CompileContext, list: &Vec<SExpr>) -> SExpr {
-	match list.as_slice() {
-		_ => unimplemented!(),
-	}
+fn dyn_match(pattern: &[SExpr], target: &[SExpr]) -> HashMap<Name, SExpr> {
+	unimplemented!()
 }
-*/
 
 fn apply_macro(macro_define: &Arc<MacroDefine>, sexprs: &[SExpr]) -> CResult {
 	match &**macro_define {

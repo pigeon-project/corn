@@ -62,6 +62,7 @@ fn parse_atom(node: &Pair<Rule>) -> Atom {
 			.collect::<Vec<char>>()
 			.get(0)
 			.unwrap()),
+		/*
 		Rule::rational => {
 			let mut i = node.clone().into_inner();
 			let l = i.next().unwrap();
@@ -70,6 +71,7 @@ fn parse_atom(node: &Pair<Rule>) -> Atom {
 				l.as_span().as_str().parse().unwrap(),
 				r.as_span().as_str().parse().unwrap())
 		}
+		*/
 		Rule::raw_str  => Atom::Str(node.as_span().as_str().parse().unwrap()),
 		Rule::str   => Atom::Str(escape(node.as_span().as_str())),
 		Rule::sym   => Atom::Sym(node.as_span().as_str().parse().unwrap()),
@@ -94,6 +96,7 @@ fn parse_sexpr(node: &Pair<Rule>) -> SExpr {
 				parse_sexpr(&r)
 			])
 		}
+		/*
 		Rule::pair => {
 			let mut i = node.clone().into_inner();
 			let l = i.next().unwrap();
@@ -102,6 +105,7 @@ fn parse_sexpr(node: &Pair<Rule>) -> SExpr {
 				parse_sexpr(&l.into_inner().next().unwrap()),
 				parse_sexpr(&r.into_inner().next().unwrap()))))
 		}
+		*/
 		Rule::list =>
 			List(
 				node.clone()
