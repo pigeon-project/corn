@@ -28,13 +28,13 @@ pub enum SExpr {
 	Pair(Box<(SExpr, SExpr)>)
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+/*#[derive(Debug, Serialize, Deserialize)]
 pub enum Ast {
 	Lit(Atom),
 	Call(Vec<Ast>),
 	Lambda(Vec<Name>, Vec<Ast>),
 	Cond(Vec<(Ast, Ast)>, Option<Box<Ast>>)
-}
+}*/
 
 // Process macro native interface
 // #[derive(Clone)]
