@@ -8,6 +8,7 @@ corn = ${ (sexpr ~ (WHITE_SPACE ~ sexpr)*)? }
 
 sexpr =
   { quote
+  | unquote
 //   | pair
   | list
   | atom
@@ -18,13 +19,14 @@ list =
   | "[" ~ WHITE_SPACE? ~ (sexpr ~ (WHITE_SPACE ~ sexpr)*)? ~ WHITE_SPACE? ~ "]"
 }
 
-pair =
-  ${ "(" ~ WHITE_SPACE? ~ sexpr ~ WHITE_SPACE ~ "." ~ WHITE_SPACE ~ sexpr ~ WHITE_SPACE? ~ ")"
-  | "[" ~ WHITE_SPACE? ~ sexpr ~ WHITE_SPACE ~ "." ~ WHITE_SPACE ~ sexpr ~ WHITE_SPACE? ~ "]"
-}
+// pair =
+//   ${ "(" ~ WHITE_SPACE? ~ sexpr ~ WHITE_SPACE ~ "." ~ WHITE_SPACE ~ sexpr ~ WHITE_SPACE? ~ ")"
+//   | "[" ~ WHITE_SPACE? ~ sexpr ~ WHITE_SPACE ~ "." ~ WHITE_SPACE ~ sexpr ~ WHITE_SPACE? ~ "]"
+// }
 
 quote = ${ "&" ~ sexpr }
 
+unquote = ${ "*" ~ sexpr }
 
 atom =
   { nil
@@ -72,10 +74,11 @@ digit = _{ '0'..'9' }
 sym_char = _{
   !(";"
   | "'"
-  | "."
+//   | "."
   | "\""
   | "/"
   | "&"
+  | "*"
   | "#"
   | "("
   | ")"

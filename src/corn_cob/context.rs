@@ -22,7 +22,7 @@ pub enum Atom {
 	Sym(Name),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SExpr {
 	Atom(Atom),
 	List(Vec<SExpr>),

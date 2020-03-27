@@ -20,7 +20,7 @@ pub fn internal_parse_simple_expr(input: &str) -> SExpr {
 	parse(input).unwrap().get(0).unwrap().clone()
 }
 
-const MACRO_DEFINE_PATTERN: &'static str = "(&name ($+ [&pattern &template]))";
+const MACRO_DEFINE_PATTERN: &'static str = "(name ([pattern template] ...))";
 
 pub fn macro_define(context: &CompileContext, sexprs: &SExpr) -> CResult {
 	let records = dyn_match(

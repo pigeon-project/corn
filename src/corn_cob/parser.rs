@@ -92,7 +92,16 @@ fn parse_sexpr(node: &Pair<Rule>) -> SExpr {
 				.into_inner().next().unwrap()
 				.into_inner().next().unwrap();
 			List(vec![
-				SExpr::Atom(Sym(String::from("quote" ))),
+				SExpr::Atom(Sym(String::from("quote"))),
+				parse_sexpr(&r)
+			])
+		}
+		Rule::unquote => {
+			let r = node.clone()
+				.into_inner().next().unwrap()
+				.into_inner().next().unwrap();
+			List(vec![
+				SExpr::Atom(Sym(String::from("unquote"))),
 				parse_sexpr(&r)
 			])
 		}

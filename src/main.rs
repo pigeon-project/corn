@@ -49,7 +49,7 @@ fn main() {
              macro_define(
                  &Default::default(),
                  &internal_parse_simple_expr(
-                     "(let [((($+ &var &expr)) ($+ &body)) ((lambda ((<-> (dequote var))) (<-> (dequote body))) ((<-> (dequote expr))))])")));
+                     "(let [([var expr] ...) ])")));
 }
 
 #[test]
