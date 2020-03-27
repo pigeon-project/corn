@@ -2,6 +2,7 @@ use std::sync::Arc;
 use super::preprocessor::dyn_match;
 use crate::corn_cob::context::{Name, PMNI, MacroDefine, CompileContext, MacroFun, SExpr, CResult, CompileError};
 use crate::corn_cob::parser::parse;
+use crate::corn_cob::utils::nil;
 
 
 fn register_macro(c: &CompileContext, k: Name, v: MacroDefine) {
@@ -26,5 +27,5 @@ pub fn macro_define(context: &CompileContext, sexprs: &SExpr) -> CResult {
 		&internal_parse_simple_expr(MACRO_DEFINE_PATTERN),
 		sexprs)?;
 	println!("records: {:?}", records);
-	unimplemented!()
+	Ok(nil())
 }

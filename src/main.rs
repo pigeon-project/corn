@@ -40,7 +40,7 @@ fn main() {
     println!("Hello, world!");
     println!("{:?}", &vec![1, 2, 3][3..3]);
     // println!("out: {:?}", parse("&(+ \"str\\r\\n\" 's') 1 3.2 4/5 ([] . [])"));
-    // repl()
+    // repl();
     // println!("out: {:?}",
     //          dyn_match(
     //              &internal_parse_simple_expr("(($+ &e))"),
@@ -48,7 +48,8 @@ fn main() {
     println!("out: {:?}",
              macro_define(
                  &Default::default(),
-                 &internal_parse_simple_expr("(eval [true false] [false true])")));
+                 &internal_parse_simple_expr(
+                     "(let [((($+ &var &expr)) ($+ &body)) ((lambda ((<-> (dequote var))) (<-> (dequote body))) ((<-> (dequote expr))))])")));
 }
 
 #[test]
