@@ -12,10 +12,12 @@ use std::io::Write;
 use corn_cob::parser::parse;
 use corn_cob::preprocessor::preprocess;
 use crate::corn_cob::utils::nil;
+use crate::corn_cob::context::CompileContext;
 // use crate::corn_cob::context::{CompileContext, SExpr, CResult};
 
 
 fn repl() -> ! {
+    let mut compile_context: CompileContext = Default::default();
     loop {
         io::stdout().write("λ ".as_ref()).unwrap();
         io::stdout().flush().unwrap();
@@ -25,7 +27,7 @@ fn repl() -> ! {
         println!("raw out: {:?}", r);
         if let Some(x) = r {
             let _: Vec<_> = x.iter()
-                .map(|e| preprocess(&Default::default(), e))
+                .map(|e| preprocess(&mut compile_context, e))
                 .map(|e| println!("macro-expand: {:?}", e)).collect();
         }
     }
@@ -33,11 +35,12 @@ fn repl() -> ! {
 
 fn main() {
     println!("Hello, world!");
+    println!("{:?}", &vec![1, 2, 3][0..2]);
     // println!("out: {:?}", parse("&(+ \"str\\r\\n\" 's') 1 3.2 4/5 ([] . [])"));
     repl()
 }
 
 #[test]
 fn macro_gulugulu() {
-    preprocess(&Default::default(), &nil());
+    preprocess(&mut Default::default(), &nil());
 }

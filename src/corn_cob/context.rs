@@ -44,7 +44,8 @@ pub enum Ast {
 #[derive(Debug)]
 pub struct CompileError ();
 pub type CResult = Result<SExpr, CompileError>;
-pub struct PMNI (pub Name, pub fn(sexprs: &SExpr) -> CResult);
+pub type MacroFun = fn(context: &CompileContext, sexprs: &SExpr) -> CResult;
+pub struct PMNI (pub Name, pub SExpr, pub MacroFun);
 
 impl Debug for PMNI {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
