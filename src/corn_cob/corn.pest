@@ -49,8 +49,9 @@ char = {
 
 raw_str = ${ "r\"" ~ (!"\"" ~ ANY)* ~ "\""}
 str = ${ "\"" ~ (escape | rstr)* ~ "\"" }
-uint = ${ digit ~ (digit | "_")* }
-int = ${ ("+" | "-")? ~ uint }
+// uint = ${ digit ~ (digit | "_")* }
+uint = ${ digit+ }
+int = ${ ("+" | "-") ~ uint }
 float = ${ (int | uint) ~ "." ~ uint }
 // rational = ${ (float | uint | int) ~ "/" ~ (float | uint | int) }
 sym = ${ sym_char+ }

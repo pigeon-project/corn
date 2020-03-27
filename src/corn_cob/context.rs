@@ -1,14 +1,15 @@
-use std::path::Display;
+// use std::path::Display;
 use std::sync::{Arc, RwLock};
 use std::fmt::{Debug, Formatter};
 use std::collections::HashMap;
 
 use serde::{Serialize, Deserialize};
+// use std::hash::{Hash, Hasher};
 
 
 pub type Name = String;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Atom {
 	Nil,
 	Bool(bool),
@@ -42,21 +43,17 @@ pub enum Ast {
 
 #[derive(Debug)]
 pub struct CompileError ();
-
 pub type CResult = Result<SExpr, CompileError>;
-
-pub struct PMNI (pub Name, pub fn(sexprs: &[SExpr]) -> CResult);
+pub struct PMNI (pub Name, pub fn(sexprs: &SExpr) -> CResult);
 
 impl Debug for PMNI {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-		write!(f, "<procecc-macro '{}'>", self.0)
+		write!(f, "<process-macro '{}'>", self.0)
 	}
 }
 
 #[derive(Debug)]
-pub enum SyntaxRuleDefine {
-
-}
+pub struct SyntaxRuleDefine (pub Vec<(SExpr, SExpr)>);
 
 #[derive(Debug)]
 pub enum MacroDefine {

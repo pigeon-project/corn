@@ -10,9 +10,9 @@ mod corn_cob;
 use std::io;
 use std::io::Write;
 use corn_cob::parser::parse;
-use corn_cob::preprocessor::macro_expand;
+use corn_cob::preprocessor::preprocess;
 use crate::corn_cob::utils::nil;
-use crate::corn_cob::context::{CompileContext, SExpr, CResult};
+// use crate::corn_cob::context::{CompileContext, SExpr, CResult};
 
 
 fn repl() -> ! {
@@ -24,10 +24,9 @@ fn repl() -> ! {
         let r = parse(input.trim());
         println!("raw out: {:?}", r);
         if let Some(x) = r {
-            x.iter()
-                .map(|e| macro_expand(&Default::default(), e))
-                .map(|e| println!("macro-expand: {:?}", e)).collect::<Vec<_>>();
-            
+            let _: Vec<_> = x.iter()
+                .map(|e| preprocess(&Default::default(), e))
+                .map(|e| println!("macro-expand: {:?}", e)).collect();
         }
     }
 }
@@ -40,6 +39,5 @@ fn main() {
 
 #[test]
 fn macro_gulugulu() {
-    use corn_cob::preprocessor;
-    macro_expand(&Default::default(), &nil());
+    preprocess(&Default::default(), &nil());
 }
