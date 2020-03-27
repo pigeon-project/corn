@@ -28,7 +28,8 @@ fn merge_hash_table(r: Vec<MatchRecord>) -> MatchRecord {
 	return record;
 }
 
-fn dyn_match(pattern: &SExpr, target: &SExpr) -> MatchResult {
+pub fn dyn_match(pattern: &SExpr, target: &SExpr) -> MatchResult {
+	println!("1: {:?} 2: {:?}", pattern, target);
 	match (pattern, target) {
 		(SExpr::Atom(x), SExpr::Atom(y)) =>
 			if x == y { Ok(HashMap::new()) } else { Err(CompileError()) }
@@ -106,7 +107,7 @@ fn dyn_match(pattern: &SExpr, target: &SExpr) -> MatchResult {
 	}
 }
 
-fn macro_expand(record: &HashMap<Name, SExpr>, template: &SExpr) -> CResult {
+pub fn macro_expand(record: &HashMap<Name, SExpr>, template: &SExpr) -> CResult {
 	match template {
 		SExpr::List(l)
 		if l.get(0).map_or(false,|x| {

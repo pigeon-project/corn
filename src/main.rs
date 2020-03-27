@@ -10,9 +10,12 @@ mod corn_cob;
 use std::io;
 use std::io::Write;
 use corn_cob::parser::parse;
+use corn_cob::context::CompileContext;
 use corn_cob::preprocessor::preprocess;
-use crate::corn_cob::utils::nil;
-use crate::corn_cob::context::CompileContext;
+use corn_cob::base_macro::macro_define;
+use corn_cob::utils::nil;
+use crate::corn_cob::base_macro::internal_parse_simple_expr;
+use crate::corn_cob::preprocessor::dyn_match;
 // use crate::corn_cob::context::{CompileContext, SExpr, CResult};
 
 
@@ -37,7 +40,11 @@ fn main() {
     println!("Hello, world!");
     println!("{:?}", &vec![1, 2, 3][0..2]);
     // println!("out: {:?}", parse("&(+ \"str\\r\\n\" 's') 1 3.2 4/5 ([] . [])"));
-    repl()
+    // repl()
+    println!("out: {:?}",
+             dyn_match(
+                 &internal_parse_simple_expr("(&name ($*))"),
+                 &internal_parse_simple_expr("(一二三)")));
 }
 
 #[test]
