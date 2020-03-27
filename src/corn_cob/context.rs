@@ -30,6 +30,15 @@ pub enum SExpr {
 	Pair(Box<(SExpr, SExpr)>)
 }
 
+impl SExpr {
+	pub fn get_list(&self) -> &Vec<SExpr> {
+		match self {
+			SExpr::List(r) => r,
+			_ => panic!("SExpr is not list")
+		}
+	}
+}
+
 /*#[derive(Debug, Serialize, Deserialize)]
 pub enum Ast {
 	Lit(Atom),

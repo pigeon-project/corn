@@ -29,32 +29,21 @@ fn merge_hash_table(r: Vec<MatchRecord>) -> MatchRecord {
 }
 
 pub fn dyn_match(pattern: &SExpr, target: &SExpr) -> MatchResult {
-	println!("1: {:?} 2: {:?}", pattern, target);
+	println!("1: {:?}\n2: {:?}", pattern, target);
 	match (pattern, target) {
-		(SExpr::Atom(x), SExpr::Atom(y)) =>
-			if x == y { Ok(HashMap::new()) } else { Err(CompileError()) }
-		(SExpr::List(s), x)
-		if s.len() == 2 && s.get(0).map_or(false,|x| {
-			if let SExpr::Atom(Sym(s)) = x {
-				s == "quote"
-			} else { false }
-		}) => {
-			if s.len() != 2 {
-				return Err(CompileError());
-			}
-			if let Some(SExpr::Atom(Sym(n))) = s.get(1) {
-				let mut r = HashMap::new();
-				r.insert(n.clone(), x.clone());
-				Ok(r)
-			} else {
-				Err(CompileError())
-			}
-		}
+		// 加值匹配
 		(SExpr::List(s), SExpr::List(s1))
 		if  s.len() >= 1 && s.len() <= s1.len() + 1 &&
 			s.get(s.len()-1).map_or(false,|x| {
-			if let SExpr::Atom(Sym(x)) = x {
-				x == "$*" || x == "$+"
+			if let SExpr::List(block) = x {
+				if block.len() != 2 {
+					return false;
+				}
+				if let SExpr::Atom(Sym(x)) = block.get(0).unwrap().clone() {
+					x == "$*".to_string() || x == "$+".to_string()
+				} else {
+					false
+				}
 			} else {
 				false
 			}}) => {
@@ -63,39 +52,72 @@ pub fn dyn_match(pattern: &SExpr, target: &SExpr) -> MatchResult {
 				.map(| (p, t) | dyn_match(p, t))
 				.collect();
 			let mut r = r?;
-			if let SExpr::Atom(Sym(x)) = s.get(s.len()-1).unwrap() {
-				if x == "$+" && s1[..s.len()-1].len() == 0 {
-					return Err(CompileError())
-				}
-				let pattern = s.get(s.len()-1).expect("模式匹配里重复匹配少了最后一个");
-				let target: Result<Vec<MatchRecord>, CompileError> = s1[s.len()-1..]
-					.iter()
-					.map(|x| dyn_match(pattern, x))
-					.collect();
-				let target = target?;
-				let mut r1: HashMap<Name, RefCell<Vec<SExpr>>> = HashMap::new();
-				target
-					.iter()
-					.fold(&mut r1,  |records, x| {
-						for (n, s) in x {
-							match records.get(n) {
-								Some(record) => {
-									let r = record.borrow_mut().push(s.clone());
-								},
-								None => {records.insert(n.clone(), RefCell::new(vec![s.clone()]));}
+			if let SExpr::List(block) = s.get(s.len()-1).unwrap() {
+				if let SExpr::Atom(Sym(x)) = block.get(0).unwrap().clone() {
+					if x == "$+".to_string() && s.len()-1 == s1.len() {
+						panic!("3");
+						return Err(CompileError());
+					}
+					let pattern = s
+						.get(s.len()-1)
+						.expect("模式匹配里重复匹配少了最后一个").get_list()
+						.clone();
+					let pattern = pattern
+						.get(1)
+						.unwrap();
+					println!("pattern: {:?}", pattern);
+					let target: Result<Vec<MatchRecord>, CompileError> = s1[s.len()-1..]
+						.iter()
+						.map(|x| dyn_match(pattern, x))
+						.collect();
+					let target = target?;
+					let mut r1: HashMap<Name, RefCell<Vec<SExpr>>> = HashMap::new();
+					target
+						.iter()
+						.fold(&mut r1,  |records, x| {
+							for (n, s) in x {
+								match records.get(n) {
+									Some(record) => {
+										record.borrow_mut().push(s.clone());
+									},
+									None => {records.insert(n.clone(), RefCell::new(vec![s.clone()]));}
+								}
 							}
-						}
-						records
-					});
-				let r1 = r1
-					.into_iter()
-					.map(|(n, y)| (n, SExpr::List(y.into_inner())));
-				r.push(HashMap::from_iter(r1));
-				Ok(merge_hash_table(r))
+							records
+						});
+					let r1 = r1
+						.into_iter()
+						.map(|(n, y)| (n, SExpr::List(y.into_inner())));
+					r.push(HashMap::from_iter(r1));
+					Ok(merge_hash_table(r))
+				} else {
+					unreachable!()
+				}
 			} else {
 				unreachable!()
 			}
 		},
+		// 引用匹配任意量
+		(SExpr::List(s), x)
+		if s.len() == 2 && s.get(0).map_or(false,|x| {
+			if let SExpr::Atom(Sym(s)) = x {
+				s == "quote"
+			} else { false }
+		}) => {
+			if s.len() != 2 {
+				panic!("2");
+				return Err(CompileError());
+			}
+			if let Some(SExpr::Atom(Sym(n))) = s.get(1) {
+				let mut r = HashMap::new();
+				r.insert(n.clone(), x.clone());
+				Ok(r)
+			} else {
+				panic!("1");
+				Err(CompileError())
+			}
+		}
+		// 列表匹配
 		(SExpr::List(x), SExpr::List(y)) => {
 			let r: Result<Vec<MatchRecord>, CompileError> = x.iter()
 				.zip(y.iter())
@@ -103,7 +125,10 @@ pub fn dyn_match(pattern: &SExpr, target: &SExpr) -> MatchResult {
 				.collect();
 			Ok(merge_hash_table(r?))
 		}
-		_ => Err(CompileError())
+		// 字面量匹配
+		(SExpr::Atom(x), SExpr::Atom(y)) =>
+			if x == y { Ok(HashMap::new()) } else { Err(CompileError()) }
+		_ => {panic!("4");Err(CompileError())}
 	}
 }
 
@@ -116,15 +141,18 @@ pub fn macro_expand(record: &HashMap<Name, SExpr>, template: &SExpr) -> CResult 
 			} else { false }
 		})  => {
 			if l.len() != 2 {
+				panic!("5");
 				return Err(CompileError());
 			}
 			if let Some(SExpr::Atom(Sym(n))) = l.get(1) {
 				if let Some(r) = record.get(n) {
 					Ok(r.clone())
 				} else {
+					panic!("6");
 					Err(CompileError())
 				}
 			} else {
+				panic!("7");
 				Err(CompileError())
 			}
 		}
@@ -152,6 +180,7 @@ fn apply_macro(context: &CompileContext, macro_define: &Arc<MacroDefine>, sexprs
 					return macro_expand(&record, temp);
 				}
 			}
+			panic!("8");
 			return Err(CompileError());
 		}
 	}

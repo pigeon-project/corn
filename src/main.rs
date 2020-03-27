@@ -38,13 +38,17 @@ fn repl() -> ! {
 
 fn main() {
     println!("Hello, world!");
-    println!("{:?}", &vec![1, 2, 3][0..2]);
+    println!("{:?}", &vec![1, 2, 3][3..3]);
     // println!("out: {:?}", parse("&(+ \"str\\r\\n\" 's') 1 3.2 4/5 ([] . [])"));
     // repl()
+    // println!("out: {:?}",
+    //          dyn_match(
+    //              &internal_parse_simple_expr("(($+ &e))"),
+    //              &internal_parse_simple_expr("(1 2)")));
     println!("out: {:?}",
-             dyn_match(
-                 &internal_parse_simple_expr("(&name ($*))"),
-                 &internal_parse_simple_expr("(一二三)")));
+             macro_define(
+                 &Default::default(),
+                 &internal_parse_simple_expr("(eval [true false] [false true])")));
 }
 
 #[test]
