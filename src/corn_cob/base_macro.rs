@@ -6,22 +6,12 @@ use crate::corn_cob::utils::nil;
 use crate::corn_cob::context::Atom::*;
 
 
-fn register_macro(c: &CompileContext, k: &Name, v: MacroDefine) {
-	c.macro_defines
-		.write()
-		.unwrap()
-		.insert(k.clone(), Arc::new(v));
-}
-
-fn register_native_macro(c: &CompileContext, k: &Name, description: SExpr, v: MacroFun) {
-	register_macro(c, k, MacroDefine::ProcessMacro(PMNI(k.clone(), description, v)));
-}
-
 pub fn internal_parse_simple_expr(input: &str) -> SExpr {
 	parse(input).unwrap().get(0).unwrap().clone()
 }
 
-const MACRO_DEFINE_PATTERN: &'static str = "(name ([pattern template] ...))";
+// const MACRO_DEFINE_PATTERN: &'static str = "(name [pattern template] ...)";
+const MACRO_DEFINE_PATTERN: &'static str = include_str!("meta_derive/macro.corn");
 
 pub fn macro_define(context: &CompileContext, sexprs: &SExpr) -> CResult {
 	let records = dyn_match(
@@ -38,10 +28,21 @@ pub fn macro_define(context: &CompileContext, sexprs: &SExpr) -> CResult {
 		.zip(templates.iter())
 		.map(|(pattern, temp)| (pattern.clone(), temp.clone()))
 		.collect();
-	register_macro(
-		context,
+	context.register_macro(
 		name,
 		MacroDefine::SyntaxRule(
 			SyntaxRuleDefine(name.clone(), macro_body)));
 	Ok(nil())
+}
+
+#[inline]
+fn macro_define_register__(context: &CompileContext) {
+	context.register_native_macro(
+		&"macro".to_string(),
+		internal_parse_simple_expr(MACRO_DEFINE_PATTERN),
+		macro_define);
+}
+
+pub fn load_prelude_macro(context: &CompileContext) {
+	macro_define_register__(context);
 }

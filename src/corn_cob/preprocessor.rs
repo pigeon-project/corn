@@ -139,7 +139,7 @@ pub fn macro_expand(record: &MatchRecord, template: &SExpr) -> CResult {
 	}
 }
 
-fn apply_macro(context: &CompileContext, macro_define: &Arc<MacroDefine>, sexprs: &SExpr) -> CResult {
+pub fn apply_macro(context: &CompileContext, macro_define: &Arc<MacroDefine>, sexprs: &SExpr) -> CResult {
 	match &**macro_define {
 		MacroDefine::ProcessMacro(fun) => (fun.2)(context, sexprs),
 		MacroDefine::SyntaxRule(r) => {
@@ -164,13 +164,12 @@ fn list_match(context: &CompileContext, list: &Vec<SExpr>) -> CResult {
 		.collect();
 	let r = r?;
 	if let Some(SExpr::Atom(Sym(n))) = r.get(0) {
-		if let Some(m) = context.macro_defines
+		let macro_define = if let Some(m) = context.macro_defines
 			.read().unwrap()
 			.get(n) {
-			apply_macro(context, m, &SExpr::List(r[1..].to_vec()))
-		} else {
-			Ok(SExpr::List(r))
-		}
+			m.clone()
+		} else { return Ok(SExpr::List(r)) };
+		apply_macro(context, &macro_define, &SExpr::List(r[1..].to_vec()))
 	} else {
 		Ok(SExpr::List(r))
 	}
@@ -179,7 +178,7 @@ fn list_match(context: &CompileContext, list: &Vec<SExpr>) -> CResult {
 pub fn preprocess(context: &CompileContext, src: &SExpr) -> CResult {
 	match src {
 		SExpr::Atom(_) => Ok((*src).clone()),
-		SExpr::Pair(_) => unimplemented!(),
+		SExpr::Pair(_) => unreachable!(),
 		SExpr::List(r) => list_match(context, r)
 	}
 }

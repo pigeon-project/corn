@@ -91,3 +91,20 @@ pub struct CompileContext {
 	pub macro_defines   : RwLock<HashMap<String, Arc<MacroDefine>>>,
 	pub function_defines: RwLock<HashMap<String, Arc<FunctionDefine>>>,
 }
+
+impl CompileContext {
+	pub fn new() -> Self {
+		Default::default()
+	}
+	
+	pub fn register_macro(&self, k: &Name, v: MacroDefine) {
+		self.macro_defines
+			.write()
+			.unwrap()
+			.insert(k.clone(), Arc::new(v));
+	}
+	
+	pub fn register_native_macro(&self, k: &Name, description: SExpr, v: MacroFun) {
+		self.register_macro(k, MacroDefine::ProcessMacro(PMNI(k.clone(), description, v)));
+	}
+}
