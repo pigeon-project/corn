@@ -31,10 +31,16 @@ pub enum SExpr {
 }
 
 impl SExpr {
-	pub fn get_list(&self) -> &Vec<SExpr> {
+	pub fn get_list(&self) -> Vec<SExpr> {
 		match self {
-			SExpr::List(r) => r,
+			SExpr::List(r) => r.clone(),
 			_ => panic!("SExpr is not list")
+		}
+	}
+	pub fn get_sym(&self) -> Name {
+		match self {
+			SExpr::Atom(Atom::Sym(r)) => r.clone(),
+			_ => panic!("SExpr is not symbol")
 		}
 	}
 }
@@ -63,7 +69,11 @@ impl Debug for PMNI {
 }
 
 #[derive(Debug)]
-pub struct SyntaxRuleDefine (pub Vec<(SExpr, SExpr)>);
+pub struct MatchRecord (pub HashMap<Name, SExpr>, pub HashMap<Name, Vec<SExpr>>);
+pub type MatchResult = Result<MatchRecord, CompileError>;
+
+#[derive(Debug)]
+pub struct SyntaxRuleDefine (pub Name, pub Vec<(SExpr, SExpr)>);
 
 #[derive(Debug)]
 pub enum MacroDefine {

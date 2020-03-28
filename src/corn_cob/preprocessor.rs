@@ -1,22 +1,20 @@
 use std::sync::Arc;
 use std::collections::HashMap;
 use std::cell::RefCell;
-use super::context::{
+use std::iter::FromIterator;
+use std::borrow::{BorrowMut, Borrow};
+use crate::corn_cob::context::{
 	Name,
 	SExpr,
 	Atom::*,
 	CResult,
 	MacroDefine,
 	CompileError,
-	CompileContext };
-use std::borrow::{BorrowMut, Borrow};
-use std::iter::FromIterator;
+	CompileContext,
+	MatchRecord,
+	MatchResult };
 // use super::utils::*;
 // use crate::corn_cob::context::SExpr::Atom;
-
-#[derive(Debug)]
-pub struct MatchRecord (pub HashMap<Name, SExpr>, pub HashMap<Name, Vec<SExpr>>);
-pub type MatchResult = Result<MatchRecord, CompileError>;
 
 fn merge_hash_table(r: &Vec<MatchRecord>) -> MatchRecord {
 	let mut record = HashMap::new();
@@ -145,7 +143,7 @@ fn apply_macro(context: &CompileContext, macro_define: &Arc<MacroDefine>, sexprs
 	match &**macro_define {
 		MacroDefine::ProcessMacro(fun) => (fun.2)(context, sexprs),
 		MacroDefine::SyntaxRule(r) => {
-			let r = r.0
+			let r = r.1
 				.iter()
 				.map(|(pattern, temp)| (dyn_match(pattern, sexprs), temp));
 			for (r, temp) in r {
