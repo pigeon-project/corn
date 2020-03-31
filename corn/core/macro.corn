@@ -1,0 +1,10 @@
+(macro let [
+    (_ ([var expr] ...) body ...)
+    ((lambda (var ...) body ...) expr ...)])
+
+(macro if [
+    (_ cd then else)
+    (cond
+        [*cd *then]
+        [#t *else])])
+
