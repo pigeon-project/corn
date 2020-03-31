@@ -112,27 +112,44 @@ pub fn macro_expand(record: &MatchRecord, template: &SExpr) -> CResult {
 			} else { false }
 		})  => {
 			if l.len() != 2 {
-				panic!("5");
 				return Err(CompileError());
 			}
-			if let Some(SExpr::Atom(Sym(n))) = l.get(1) {
-				if let Some(r) = record.0.get(n) {
-					Ok(r.clone())
-				} else {
-					panic!("6");
-					Err(CompileError())
-				}
+			let n = if let Some(SExpr::Atom(Sym(n))) = l.get(1) {
+				n
+			} else { return Err(CompileError()); };
+			if let Some(r) = record.0.get(n) {
+				Ok(r.clone())
 			} else {
-				panic!("7");
 				Err(CompileError())
 			}
 		}
 		SExpr::List(l) => {
-			let r: Result<Vec<SExpr>, CompileError> = l
+			let l2: &[SExpr];
+			let l3: Vec<SExpr>;
+			if
+				l.len() >= 2
+					&& l.get(l.len()-2).unwrap().is_sym()
+					&& if let SExpr::Atom(Sym(endsym)) =
+						l.get(l.len()-1).unwrap() { endsym == "..." } else { false } {
+				l2 = &l[..l.len()-2];
+				let name = l.get(l.len()-2).unwrap().get_sym();
+				if let Some(endrecord) = record.1.get(&name) {
+					l3 = endrecord.clone();
+				} else {
+					return Err(CompileError());
+				}
+			} else {
+				l2 = &l[..];
+				l3 = Vec::new();
+			}
+			let r: Result<Vec<SExpr>, CompileError> = l2
 				.iter()
 				.map(|x| macro_expand(record, x))
 				.collect();
-			let r = r?;
+			let mut r = r?;
+			for i in l3 {
+				r.push(i);
+			}
 			Ok(SExpr::List(r))
 		}
 		_ => Ok(template.clone())
@@ -143,6 +160,8 @@ pub fn apply_macro(context: &CompileContext, macro_define: &Arc<MacroDefine>, se
 	match &**macro_define {
 		MacroDefine::ProcessMacro(fun) => (fun.2)(context, sexprs),
 		MacroDefine::SyntaxRule(r) => {
+			println!("exprs: {:?}", sexprs);
+			println!("match: {:?}", r);
 			let r = r.1
 				.iter()
 				.map(|(pattern, temp)| (dyn_match(pattern, sexprs), temp));
@@ -169,7 +188,8 @@ fn list_match(context: &CompileContext, list: &Vec<SExpr>) -> CResult {
 			.get(n) {
 			m.clone()
 		} else { return Ok(SExpr::List(r)) };
-		apply_macro(context, &macro_define, &SExpr::List(r[1..].to_vec()))
+		// apply_macro(context, &macro_define, &SExpr::List(r[1..].to_vec()))
+		apply_macro(context, &macro_define, &SExpr::List(r))
 	} else {
 		Ok(SExpr::List(r))
 	}

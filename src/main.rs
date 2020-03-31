@@ -40,13 +40,16 @@ fn repl(compile_context: &CompileContext) -> ! {
 fn main() {
     println!("Hello, world!");
     println!("{:?}", &vec![1, 2, 3][3..3]);
-    // println!("out: {:?}", parse("&(+ \"str\\r\\n\" 's') 1 3.2 4/5 ([] . [])"));
     let mut compile_context= CompileContext::new();
     load_prelude_macro(&compile_context);
-    // repl(&compile_context);
     println!("out: {:?}",
              preprocess(&compile_context,
-                        &internal_parse_simple_expr("(macro t1 [1 2])")));
+                        &internal_parse_simple_expr("(macro t1 [(_ a) (*a)])")));
+    // println!("out: {:?}",
+    //          preprocess(&compile_context,
+    //                     &internal_parse_simple_expr("(macro let [(([vars exprs] ...) body ...) ((lambda (vars ...) body ...) ...)])")));
+    
+    repl(&compile_context);
     // println!("out: {:?}",
     //          apply_macro(
     //              &compile_context,

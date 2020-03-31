@@ -31,6 +31,14 @@ pub enum SExpr {
 }
 
 impl SExpr {
+	pub fn is_sym(&self) -> bool {
+		if let SExpr::Atom(Atom::Sym(_)) = self {
+			true
+		} else {
+			false
+		}
+	}
+	
 	pub fn get_list(&self) -> Vec<SExpr> {
 		match self {
 			SExpr::List(r) => r.clone(),
