@@ -45,9 +45,9 @@ fn main() {
     println!("out: {:?}",
              preprocess(&compile_context,
                         &internal_parse_simple_expr("(macro t1 [(_ a) (*a)])")));
-    // println!("out: {:?}",
-    //          preprocess(&compile_context,
-    //                     &internal_parse_simple_expr("(macro let [(([vars exprs] ...) body ...) ((lambda (vars ...) body ...) ...)])")));
+    println!("out: {:?}",
+             preprocess(&compile_context,
+                        &internal_parse_simple_expr("(macro let [(_ ([var expr] ...) body ...) ((lambda (var ...) body ...) expr ...)])")));
     
     repl(&compile_context);
     // println!("out: {:?}",
