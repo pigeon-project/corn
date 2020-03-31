@@ -1,1 +1,2 @@
-(&macro name [pattern template] ...)
+(&macro name
+    [pattern template] ...)

@@ -15,8 +15,8 @@ sexpr =
   }
 
 list =
- ${ "(" ~ WHITE_SPACE? ~ (sexpr ~ (WHITE_SPACE ~ sexpr)*)? ~ WHITE_SPACE? ~ ")"
-  | "[" ~ WHITE_SPACE? ~ (sexpr ~ (WHITE_SPACE ~ sexpr)*)? ~ WHITE_SPACE? ~ "]"
+ ${ "(" ~ WHITE_SPACE? ~ (sexpr ~ (WHITE_SPACE* ~ sexpr)*)? ~ WHITE_SPACE? ~ ")"
+  | "[" ~ WHITE_SPACE? ~ (sexpr ~ (WHITE_SPACE* ~ sexpr)*)? ~ WHITE_SPACE? ~ "]"
 }
 
 // pair =
@@ -90,6 +90,8 @@ sym_char = _{
 WHITESPACE =
   { " "
   | "\t"
+  | "\n"
+  | WHITE_SPACE
   | NEWLINE
   }
 

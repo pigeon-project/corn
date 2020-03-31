@@ -7,6 +7,7 @@ use crate::corn_cob::context::Atom::*;
 
 
 pub fn internal_parse_simple_expr(input: &str) -> SExpr {
+	println!("Mr.P: {:?}", input);
 	parse(input).unwrap().get(0).unwrap().clone()
 }
 
