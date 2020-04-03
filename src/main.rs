@@ -1,24 +1,20 @@
 #![feature(asm)]
 #![feature(type_ascription)]
 #![feature(const_fn)]
-extern crate pest;
-#[macro_use]
-extern crate pest_derive;
-
-mod corn_cob;
+extern crate corn_cob;
 
 use std::io;
 use std::io::Write;
 use corn_cob::parser::parse;
 use corn_cob::context::CompileContext;
 use corn_cob::preprocessor::preprocess;
-use corn_cob::base_macro::macro_define;
-use corn_cob::utils::nil;
-use crate::corn_cob::base_macro::{internal_parse_simple_expr, load_prelude_macro};
+use corn_cob::base_macro::macro_define_wrapper;
+use corn_cob::utils::*;
+use crate::corn_cob::base_macro::{load_prelude_macro};
 use crate::corn_cob::preprocessor::{dyn_match, apply_macro};
 use crate::corn_cob::context::{MacroDefine, PMNI};
 use std::sync::Arc;
-// use crate::corn_cob::context::{CompileContext, SExpr, CResult};
+// use crate::corn_cob_o::context::{CompileContext, SExpr, CResult};
 
 
 fn repl(compile_context: &CompileContext) -> ! {
@@ -40,7 +36,7 @@ fn repl(compile_context: &CompileContext) -> ! {
 fn main() {
     println!("Hello, world!");
     println!("{:?}", &vec![1, 2, 3][3..3]);
-    let mut compile_context= CompileContext::new();
+    let compile_context= CompileContext::new();
     load_prelude_macro(&compile_context);
     println!("out: {:?}",
              preprocess(&compile_context,

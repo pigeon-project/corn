@@ -1,20 +1,14 @@
 use std::sync::Arc;
 use super::preprocessor::dyn_match;
-use crate::corn_cob::context::{Name, PMNI, MacroDefine, CompileContext, MacroFun, SExpr, CResult, CompileError, SyntaxRuleDefine};
-use crate::corn_cob::parser::parse;
-use crate::corn_cob::utils::nil;
-use crate::corn_cob::context::Atom::*;
-
-
-pub fn internal_parse_simple_expr(input: &str) -> SExpr {
-	println!("Mr.P: {:?}", input);
-	parse(input).unwrap().get(0).unwrap().clone()
-}
+use crate::context::{Name, PMNI, MacroDefine, CompileContext, MacroFun, SExpr, CResult, CompileError, SyntaxRuleDefine};
+use crate::parser::parse;
+use crate::utils::{nil, internal_parse_simple_expr};
+use crate::context::Atom::*;
 
 // const MACRO_DEFINE_PATTERN: &'static str = "(name [pattern template] ...)";
-const MACRO_DEFINE_PATTERN: &'static str = include_str!("meta_derive/macro.corn");
+const MACRO_DEFINE_PATTERN: &'static str = include_str!("../meta_derive/macro.corn");
 
-pub fn macro_define(context: &CompileContext, sexprs: &SExpr) -> CResult {
+pub fn macro_define_wrapper(context: &CompileContext, sexprs: &SExpr) -> CResult {
 	let records = dyn_match(
 		&internal_parse_simple_expr(MACRO_DEFINE_PATTERN),
 		sexprs)?;
@@ -41,7 +35,7 @@ fn macro_define_register__(context: &CompileContext) {
 	context.register_native_macro(
 		&"macro".to_string(),
 		internal_parse_simple_expr(MACRO_DEFINE_PATTERN),
-		macro_define);
+		macro_define_wrapper);
 }
 
 pub fn load_prelude_macro(context: &CompileContext) {

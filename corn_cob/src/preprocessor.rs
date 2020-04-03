@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::cell::RefCell;
 use std::iter::FromIterator;
 use std::borrow::{BorrowMut, Borrow};
-use crate::corn_cob::context::{
+use crate::context::{
 	Name,
 	SExpr,
 	Atom::*,
@@ -14,7 +14,7 @@ use crate::corn_cob::context::{
 	MatchRecord,
 	MatchResult };
 // use super::utils::*;
-// use crate::corn_cob::context::SExpr::Atom;
+// use crate::corn_cob_o::context::SExpr::Atom;
 
 fn merge_hash_table(r: &Vec<MatchRecord>) -> MatchRecord {
 	let mut record = HashMap::new();
@@ -27,6 +27,7 @@ fn merge_hash_table(r: &Vec<MatchRecord>) -> MatchRecord {
 	return MatchRecord(record, HashMap::new());
 }
 
+#[inline]
 pub fn dyn_match(pattern: &SExpr, target: &SExpr) -> MatchResult {
 	println!("1: {:?}\n2: {:?}", pattern, target);
 	match (pattern, target) {

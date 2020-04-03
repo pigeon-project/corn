@@ -53,14 +53,6 @@ impl SExpr {
 	}
 }
 
-/*#[derive(Debug, Serialize, Deserialize)]
-pub enum Ast {
-	Lit(Atom),
-	Call(Vec<Ast>),
-	Lambda(Vec<Name>, Vec<Ast>),
-	Cond(Vec<(Ast, Ast)>, Option<Box<Ast>>)
-}*/
-
 // Process macro native interface
 // #[derive(Clone)]
 
@@ -90,14 +82,43 @@ pub enum MacroDefine {
 }
 
 #[derive(Debug)]
-pub struct FunctionDefine {
+pub enum BaseType {
+	Bottom,
+	Unit,
+	Bool,
+	Char,
+	U8,
+	U32,
+	U64,
+	I32,
+	I64,
+	F32,
+	F64,
+}
 
+#[derive(Debug)]
+pub enum TypeExpr {
+
+}
+
+#[derive(Debug)]
+pub struct FunctionDefine {
+	pub pure_flag: bool,
+	// pub async_flag: bool,
+	pub ast: Box<SExpr>,
+	pub typeinfo: Vec<TypeExpr>,
+}
+
+#[derive(Debug)]
+pub struct TypeDefine {
+	pub record: HashMap<String, Arc<TypeExpr>>
 }
 
 #[derive(Debug, Default)]
 pub struct CompileContext {
 	pub macro_defines   : RwLock<HashMap<String, Arc<MacroDefine>>>,
 	pub function_defines: RwLock<HashMap<String, Arc<FunctionDefine>>>,
+	pub type_defines    : RwLock<HashMap<String, Arc<TypeDefine>>>,
 }
 
 impl CompileContext {
@@ -115,4 +136,9 @@ impl CompileContext {
 	pub fn register_native_macro(&self, k: &Name, description: SExpr, v: MacroFun) {
 		self.register_macro(k, MacroDefine::ProcessMacro(PMNI(k.clone(), description, v)));
 	}
+}
+
+struct RuntimeContext {
+	pub type_defines    : RwLock<HashMap<String, Arc<TypeDefine>>>,
+	pub function_defines: RwLock<HashMap<String, Arc<FunctionDefine>>>,
 }

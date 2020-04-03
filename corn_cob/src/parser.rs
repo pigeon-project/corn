@@ -6,7 +6,7 @@ use super::context::{Atom, Atom::*, SExpr, SExpr::* };
 
 
 #[derive(Parser)]
-#[grammar = "corn_cob/corn.pest"]
+#[grammar = "./corn.pest"]
 struct CornParser;
 
 fn escape_char_map(c: char) -> char {
