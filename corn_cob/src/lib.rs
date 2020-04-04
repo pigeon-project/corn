@@ -6,6 +6,9 @@
 extern crate pest_derive;
 extern crate pest;
 
+#[macro_use]
+extern crate lazy_static;
+
 pub mod parser;
 pub mod context;
 pub mod preprocessor;

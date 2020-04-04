@@ -10,3 +10,4 @@ edition = "2018"
 serde = { version = "1.0.104", features = ["derive"] }
 pest = "2.1.0"
 pest_derive = "2.1.0"
+lazy_static = "1.4.0"

@@ -5,15 +5,15 @@ extern crate corn_cob;
 
 use std::io;
 use std::io::Write;
-use corn_cob::parser::parse;
-use corn_cob::context::CompileContext;
-use corn_cob::preprocessor::preprocess;
-use corn_cob::base_macro::macro_define_wrapper;
-use corn_cob::utils::*;
-use crate::corn_cob::base_macro::{load_prelude_macro};
-use crate::corn_cob::preprocessor::{dyn_match, apply_macro};
-use crate::corn_cob::context::{MacroDefine, PMNI};
 use std::sync::Arc;
+
+use corn_cob::parser::parse;
+use corn_cob::context::{CompileContext, RuntimeContext, MacroDefine, PMNI, SExpr, CompileError};
+use corn_cob::preprocessor::{dyn_match, apply_macro, preprocess};
+use corn_cob::base_macro::{macro_define_wrapper, load_prelude_macro};
+use corn_cob::gen2lyzh4ir::base_codegen;
+use corn_cob::utils::*;
+
 // use crate::corn_cob_o::context::{CompileContext, SExpr, CResult};
 
 
@@ -24,11 +24,19 @@ fn repl(compile_context: &CompileContext) -> ! {
         let mut input = String::new();
         std::io::stdin().read_line(&mut input).unwrap();
         let r = parse(input.trim());
+        let rt = RuntimeContext::default();
         println!("raw out: {:?}", r);
         if let Some(x) = r {
-            let _: Vec<_> = x.iter()
+            let _ = x.iter()
                 .map(|e| preprocess(compile_context, e))
-                .map(|e| println!("macro-expand: {:?}", e)).collect();
+                .map(|e| { println!("macro-expand: {:?}", e); e })
+                .map(|e| { println!("macro-expand: {:?}", e); e.unwrap() })
+                .fold(Ok((rt, Vec::new())), |result: Result<(RuntimeContext, Vec<SExpr>), CompileError>, e| {
+                    let (rc, prev_expr) = result?;
+                    let (rc, result) = base_codegen(rc, &e)?;
+                    Ok((rc, concat_vec(prev_expr, result)))
+                })
+                .map(|(_, result)| println!("codegen: {:?}", result));
         }
     }
 }

@@ -1,8 +1,7 @@
 use crate::context::*;
-use crate::utils::{sym, internal_parse_simple_expr, ipse};
+use crate::utils::{sym, ipse, UniqueID, concat_vec};
 use crate::context::SExpr::List;
 use crate::preprocessor::dyn_match;
-use std::hint::unreachable_unchecked;
 
 struct IrSExpr (pub SExpr);
 
@@ -29,7 +28,7 @@ match_gen!(lambda_match, "../meta_derive/lambda.corn");
 match_gen!(function_match, "../meta_derive/function.corn");
 
 
-pub fn weak_type_inference(expr: &SExpr) -> TypeExpr {
+pub fn weak_type_inference(_expr: &SExpr) -> TypeExpr {
 	unimplemented!()
 }
 
@@ -37,13 +36,22 @@ pub fn weak_type_check(expr: &SExpr, tp: &TypeExpr) -> Result<TypeExpr, CompileE
 	weak_type_inference(expr).assert(tp)
 }
 
+trait Generable {
+	type Output;
+	fn gen2(self: Self, rc: &CompileContext) -> Self::Output;
+}
+
 type CodeGenResult = Result<(RuntimeContext, Vec<SExpr>), CompileError>;
 
-fn cond_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
+lazy_static! {
+	static ref COND_LABEL_NAME: UniqueID = Default::default();
+}
+
+fn cond_codegen(rc: RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
 	let records = cond_match(sexprs)?;
-	let boolexprs = records.1.get("boolexprs").unwrap();
-	let exprs = records.1.get("exprs").unwrap();
-	let code_list: Vec<Vec<SExpr>> = (boolexprs
+	let boolexprs = records.1.get("boolexpr").unwrap();
+	let exprs = records.1.get("expr").unwrap();
+	(boolexprs
 		.iter()
 		.map(|expr|
 			weak_type_check(expr, &TypeExpr::Built(BuiltinType::Bool)))
@@ -51,38 +59,44 @@ fn cond_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
 		.iter()
 		.zip(boolexprs.iter())
 		.zip(exprs.iter())
-		.map(|((tp, boolexpr), expr): ((&TypeExpr, &SExpr), &SExpr)|
-			if let TypeExpr::Built(BuiltinType::Bot) = tp {
-				base_codegen(rc, boolexpr)
-			} else if let TypeExpr::Built(BuiltinType::Top) = tp {
-				let mut r = base_codegen(rc, boolexpr)?.1;
-				r.push(SExpr::List(vec![sym("dyn-cast"), sym("corn.builtin.bool")]));
-				//FIXME: 未完成，半成品，map需要更新为fold来处理RuntimeContext
-				// r.append();
-				// (Default::default(), unimplemented!())
-				unimplemented!()
-			} else if let TypeExpr::Built(BuiltinType::Bool) = tp {
-				unimplemented!()
-			} else {
-				unreachable!()
-			})
-		.collect::<Result<_, CompileError>>()?;
-	unimplemented!()
+		.fold(Ok((rc, Vec::new())),
+			|result: Result<(RuntimeContext, Vec<SExpr>), CompileError>, ((tp, boolexpr), expr)| {
+				let (rc, prev_expr) = result?;
+				match tp {
+					TypeExpr::Built(BuiltinType::Bot) =>
+						base_codegen(rc, boolexpr)
+							.map(|(rc, res)| (rc, concat_vec(prev_expr, res))),
+					TypeExpr::Built(tp) => {
+						let (rc, mut r) = base_codegen(rc, boolexpr)?;
+						let (rc, code_block) = base_codegen(rc, expr)?;
+						let label: String = COND_LABEL_NAME.next();
+						match tp {
+							BuiltinType::Top => r.push(ipse("(dyn-cast builtin.bool)")),
+							BuiltinType::Bool => (),
+							_ => unreachable!()
+						}
+						r.push(ipse(&format!("(if-false-jump {})", label)));
+						r.extend(code_block.into_iter());
+						r.push(ipse(&format!("(:label {})", label)));
+						Ok((rc, r))
+					},
+					_ => unreachable!()
+				}
+			}
+		)
 }
 
-pub fn base_codegen(rc: &RuntimeContext, expr: &SExpr) -> CodeGenResult {
-	Ok((rc.clone(),
-	    match expr {
-		    SExpr::Atom(Atom::Sym(name)) => unimplemented!(),
-		    SExpr::Atom(s) => vec![List(vec![sym("load-const"), expr.clone()])],
-		    SExpr::List(_) =>
-			    if let Ok(r) = cond_codegen(rc, expr) {
-				    return Ok(r);
-			    } else {
-				    unreachable!()
-			    },
-		    _ => unreachable!()
-	}))
+pub fn base_codegen(rc: RuntimeContext, expr: &SExpr) -> CodeGenResult {
+	match expr {
+		SExpr::Atom(Atom::Sym(_name)) => unimplemented!(),
+		SExpr::Atom(_) => Ok((rc, vec![List(vec![sym("load-const"), expr.clone()])])),
+		SExpr::List(_) =>
+			if let Ok(r) = cond_codegen(rc, expr) {
+				Ok(r)
+			} else {
+				unreachable!()
+			},
+	}
 }
 
 /*
@@ -90,3 +104,5 @@ pub fn base_codegen_wrapper(_: &CompileContext, expr: &SExpr) -> CResult {
 	base_codegen(expr)
 }
 */
+
+

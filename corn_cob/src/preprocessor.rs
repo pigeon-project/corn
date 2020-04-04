@@ -199,7 +199,7 @@ fn list_match(context: &CompileContext, list: &Vec<SExpr>) -> CResult {
 pub fn preprocess(context: &CompileContext, src: &SExpr) -> CResult {
 	match src {
 		SExpr::Atom(_) => Ok((*src).clone()),
-		SExpr::Pair(_) => unreachable!(),
+		// SExpr::Pair(_) => unreachable!(),
 		SExpr::List(r) => list_match(context, r)
 	}
 }

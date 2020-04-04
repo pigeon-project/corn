@@ -16,7 +16,7 @@ pub enum Atom {
 	Int(i64),
 	Uint(u64),
 	Float(f32),
-	Rational(i64, i64),
+	// Rational(i64, i64),
 	Char(char),
 	Str(String),
 	Sym(Name),
@@ -27,7 +27,7 @@ pub enum SExpr {
 	Atom(Atom),
 	List(Vec<SExpr>),
 	// Tuple(Vec<SExpr>),
-	Pair(Box<(SExpr, SExpr)>)
+	// Pair(Box<(SExpr, SExpr)>)
 }
 
 impl SExpr {
@@ -128,8 +128,8 @@ pub enum TypeExpr {
 }
 
 impl TypeExpr {
-	pub fn assert(&self, other: &Self) -> Result<Self, CompileError> {
-		unimplemented!()
+	pub fn assert(&self, _other: &Self) -> Result<Self, CompileError> {
+		todo!("需要实现TypeExpr.assert()")
 	}
 }
 
