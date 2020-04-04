@@ -81,9 +81,10 @@ pub enum MacroDefine {
 	SyntaxRule(SyntaxRuleDefine)
 }
 
-#[derive(Debug)]
-pub enum BaseType {
-	Bottom,
+#[derive(Debug, Copy, Clone)]
+pub enum BuiltinType {
+	Top,
+	Bot,
 	Unit,
 	Bool,
 	Char,
@@ -94,19 +95,50 @@ pub enum BaseType {
 	I64,
 	F32,
 	F64,
+	Str,
+	Arr,
 }
 
-#[derive(Debug)]
-pub enum TypeExpr {
+impl BuiltinType {
+	pub fn assert(&self, other: &Self) -> Result<Self, CompileError> {
+		Ok(match (self, other) {
+			(BuiltinType::Bot, _) |
+			(_, BuiltinType::Top) => other.clone(),
+			(BuiltinType::Unit, BuiltinType::Unit) |
+			(BuiltinType::Bool, BuiltinType::Bool) |
+			(BuiltinType::Char, BuiltinType::Char) |
+			(BuiltinType::U8, BuiltinType::U8) |
+			(BuiltinType::U32, BuiltinType::U32) |
+			(BuiltinType::U64, BuiltinType::U64) |
+			(BuiltinType::I32, BuiltinType::I32) |
+			(BuiltinType::I64, BuiltinType::I64) |
+			(BuiltinType::F32, BuiltinType::F32) |
+			(BuiltinType::F64, BuiltinType::F64)=> self.clone(),
+			_ => return Err(CompileError())
+		})
+	}
+}
 
+#[derive(Debug, Clone)]
+pub enum TypeExpr {
+	Built(BuiltinType),
+	Tuple(Vec<TypeExpr>),
+	Union(Vec<TypeExpr>),
+	Apply(Vec<TypeExpr>),
+}
+
+impl TypeExpr {
+	pub fn assert(&self, other: &Self) -> Result<Self, CompileError> {
+		unimplemented!()
+	}
 }
 
 #[derive(Debug)]
 pub struct FunctionDefine {
 	pub pure_flag: bool,
 	// pub async_flag: bool,
-	pub ast: Box<SExpr>,
 	pub typeinfo: Vec<TypeExpr>,
+	pub ast: Box<SExpr>,
 }
 
 #[derive(Debug)]
@@ -138,7 +170,26 @@ impl CompileContext {
 	}
 }
 
-struct RuntimeContext {
-	pub type_defines    : RwLock<HashMap<String, Arc<TypeDefine>>>,
-	pub function_defines: RwLock<HashMap<String, Arc<FunctionDefine>>>,
+#[derive(Clone, Default)]
+pub struct CodeBlock {
+	pub pure_flag: bool,
+	// pub async_flag: bool,
+	pub typeinfo: Vec<TypeExpr>,
+	pub code: Vec<SExpr>,
+}
+
+#[derive(Clone, Default)]
+pub struct RuntimeContext {
+	pub type_defines    : HashMap<String, Arc<TypeDefine>>,
+	pub function_defines: HashMap<String, Arc<CodeBlock>>,
+}
+
+impl RuntimeContext {
+	fn new() -> Self {
+		Default::default()
+	}
+	
+	fn find_function(&self, sym: &str) -> Option<&Arc<CodeBlock>> {
+		self.function_defines.get(sym)
+	}
 }

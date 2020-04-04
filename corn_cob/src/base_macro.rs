@@ -31,7 +31,7 @@ pub fn macro_define_wrapper(context: &CompileContext, sexprs: &SExpr) -> CResult
 }
 
 #[inline]
-fn macro_define_register__(context: &CompileContext) {
+fn macro_define_wrapper_register__(context: &CompileContext) {
 	context.register_native_macro(
 		&"macro".to_string(),
 		internal_parse_simple_expr(MACRO_DEFINE_PATTERN),
@@ -39,5 +39,5 @@ fn macro_define_register__(context: &CompileContext) {
 }
 
 pub fn load_prelude_macro(context: &CompileContext) {
-	macro_define_register__(context);
+	macro_define_wrapper_register__(context);
 }
