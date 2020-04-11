@@ -8,3 +8,9 @@
         [*cd *then]
         [#t *else])])
 
+;(macro match (ast)
+;    (transport ast))
+
+;(macro match [
+;    (_ expr [pattern result] ...)
+;    (transport )])

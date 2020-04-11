@@ -13,6 +13,7 @@ use crate::context::{
 	CompileContext,
 	MatchRecord,
 	MatchResult };
+use std::convert::identity;
 // use super::utils::*;
 // use crate::corn_cob_o::context::SExpr::Atom;
 
@@ -27,18 +28,42 @@ fn merge_hash_table(r: &Vec<MatchRecord>) -> MatchRecord {
 	return MatchRecord(record, HashMap::new());
 }
 
-#[inline]
-pub fn dyn_match(pattern: &SExpr, target: &SExpr) -> MatchResult {
-	println!("1: {:?}\n2: {:?}", pattern, target);
+fn literally_in_match(s: &Vec<SExpr>) -> bool {
+	s.len() == 2 && s.get(0).map_or(false, |x| {
+		if let SExpr::Atom(Sym(s)) = x {
+			s == "quote"
+		} else {
+			false
+		}
+	})
+}
+
+fn match_literal(pattern: &SExpr, target: &SExpr) -> Option<MatchRecord> {
 	match (pattern, target) {
 		// 匹配字面量
-		(SExpr::List(s), x)
-		if s.len() == 2 && s.get(0).map_or(false,|x| {
-			if let SExpr::Atom(Sym(s)) = x {
-				s == "quote"
-			} else { false }
-		}) => if x == s.get(1).unwrap() { Ok(MatchRecord(HashMap::new(), HashMap::new())) } else { Err(CompileError()) },
-		// 列表匹配
+		(SExpr::List(s), x) if literally_in_match(s) =>
+			if x == s.get(1).unwrap() {
+				Some(MatchRecord(HashMap::new(), HashMap::new()))
+			} else {
+				None
+			},
+		_ => None,
+	}
+}
+
+fn match_syntax_bind(pattern: &SExpr, target: &SExpr) -> Option<MatchRecord> {
+	match (pattern, target) {
+		(SExpr::Atom(Sym(n)), x) => {
+			let mut r = HashMap::new();
+			r.insert(n.clone(), x.clone());
+			Some(MatchRecord(r, HashMap::new()))
+		}
+		_ => None
+	}
+}
+
+fn match_list(pattern: &SExpr, target: &SExpr) -> Option<MatchRecord> {
+	match (pattern, target) {
 		(SExpr::List(rx), SExpr::List(y)) if rx.len() -1 <= y.len() => {
 			let x: &[SExpr];
 			let mut endl: HashMap<Name, Vec<SExpr>>;
@@ -53,7 +78,7 @@ pub fn dyn_match(pattern: &SExpr, target: &SExpr) -> MatchResult {
 						.map(|x| dyn_match(pattern, x))
 						.collect();
 					// 去皮
-					let r = r?;
+					let r = r.ok()?;
 					// 获取变量匹配结果
 					let mut records: HashMap<Name, RefCell<Vec<SExpr>>> = HashMap::new();
 					r.iter().fold(&mut records, |records, i| {
@@ -85,23 +110,29 @@ pub fn dyn_match(pattern: &SExpr, target: &SExpr) -> MatchResult {
 				.zip(y.iter())
 				.map(| (p, t) | dyn_match(p, t))
 				.collect();
-			let r = r?;
+			let r = r.map_or_else(|_| None, |x| Some(x))?;
 			// let mut end_records: HashMap<Name, Vec<SExpr>> = HashMap::from_iter(records);
 			r.iter().fold((),|_, MatchRecord(_, end)| {
 				for (k, v) in end {
 					endl.insert(k.clone(), v.clone());
 				}
 			});
-			Ok(MatchRecord(merge_hash_table(&r).0, endl))
+			Some(MatchRecord(merge_hash_table(&r).0, endl))
 		}
-		// 匹配词法变量
-		(SExpr::Atom(Sym(n)), x) => {
-			let mut r = HashMap::new();
-			r.insert(n.clone(), x.clone());
-			Ok(MatchRecord(r, HashMap::new()))
-		}
-		_ => {panic!("4");Err(CompileError())}
+		_ => None
 	}
+}
+
+fn some_box<T>(e: T) -> Option<T> {
+	Some(e)
+}
+
+pub fn dyn_match(pattern: &SExpr, target: &SExpr) -> MatchResult {
+	println!("1: {:?}\n2: {:?}", pattern, target);
+	match_literal(pattern, target)
+		.map_or_else(|| match_list(pattern, target), some_box)
+		.map_or_else(|| match_syntax_bind(pattern, target), some_box)
+		.map_or_else(|| Err(CompileError()), |e| Ok(e))
 }
 
 pub fn macro_expand(record: &MatchRecord, template: &SExpr) -> CResult {
@@ -199,7 +230,6 @@ fn list_match(context: &CompileContext, list: &Vec<SExpr>) -> CResult {
 pub fn preprocess(context: &CompileContext, src: &SExpr) -> CResult {
 	match src {
 		SExpr::Atom(_) => Ok((*src).clone()),
-		// SExpr::Pair(_) => unreachable!(),
 		SExpr::List(r) => list_match(context, r)
 	}
 }

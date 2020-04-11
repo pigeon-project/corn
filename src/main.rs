@@ -31,12 +31,13 @@ fn repl(compile_context: &CompileContext) -> ! {
                 .map(|e| preprocess(compile_context, e))
                 .map(|e| { println!("macro-expand: {:?}", e); e })
                 .map(|e| { println!("macro-expand: {:?}", e); e.unwrap() })
-                .fold(Ok((rt, Vec::new())), |result: Result<(RuntimeContext, Vec<SExpr>), CompileError>, e| {
+                /*.fold(Ok((rt, Vec::new())), |result: Result<(RuntimeContext, Vec<SExpr>), CompileError>, e| {
                     let (rc, prev_expr) = result?;
                     let (rc, result) = base_codegen(rc, &e)?;
                     Ok((rc, concat_vec(prev_expr, result)))
                 })
-                .map(|(_, result)| println!("codegen: {:?}", result));
+                .map(|(_, result)| println!("codegen: {:?}", result));*/
+                .collect::<Vec<_>>();
         }
     }
 }

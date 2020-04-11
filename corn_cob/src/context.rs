@@ -128,8 +128,13 @@ pub enum TypeExpr {
 }
 
 impl TypeExpr {
-	pub fn assert(&self, _other: &Self) -> Result<Self, CompileError> {
-		todo!("需要实现TypeExpr.assert()")
+	pub fn assert(&self, other: &Self) -> Result<Self, CompileError> {
+		match (self, other) {
+			(TypeExpr::Built(t1), TypeExpr::Built(t2)) =>
+				t1.assert(t2)
+					.map(|e| TypeExpr::Built(e)),
+			_ => unimplemented!(),
+		}
 	}
 }
 

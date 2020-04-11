@@ -1,16 +1,26 @@
 use std::sync::Arc;
-use super::preprocessor::dyn_match;
-use crate::context::{Name, PMNI, MacroDefine, CompileContext, MacroFun, SExpr, CResult, CompileError, SyntaxRuleDefine};
 use crate::parser::parse;
-use crate::utils::{nil, internal_parse_simple_expr};
-use crate::context::Atom::*;
+use crate::context::{
+	Name,
+	PMNI,
+	MacroDefine,
+	CompileContext,
+	MacroFun,
+	SExpr,
+	CResult,
+	CompileError,
+	SyntaxRuleDefine,
+	Atom::*
+};
+use super::preprocessor::dyn_match;
+use crate::utils::{nil, internal_parse_simple_expr, ipse};
 
 // const MACRO_DEFINE_PATTERN: &'static str = "(name [pattern template] ...)";
 const MACRO_DEFINE_PATTERN: &'static str = include_str!("../meta_derive/macro.corn");
 
 pub fn macro_define_wrapper(context: &CompileContext, sexprs: &SExpr) -> CResult {
 	let records = dyn_match(
-		&internal_parse_simple_expr(MACRO_DEFINE_PATTERN),
+		&ipse(MACRO_DEFINE_PATTERN),
 		sexprs)?;
 	let name =
 		if let SExpr::Atom(Sym(n)) = records.0.get("name").unwrap() { n }
