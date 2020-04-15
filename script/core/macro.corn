@@ -1,16 +1,31 @@
-(macro let [
+(match-macro macro [
+    (_ name raw-expr expand-expr)
+    (match-macro *name
+        [raw-expr expand-expr])])
+
+(match-macro let [
     (_ ([var expr] ...) body ...)
     ((lambda (var ...) body ...) expr ...)])
 
-(macro if [
+(match-macro if [
     (_ cd then else)
     (cond
         [*cd *then]
         [#t *else])])
 
-;(macro match (ast)
+(macro let
+    (_ ([var expr] ...) body ...)
+    ((lambda (var ...) body ...) expr ...))
+
+(macro if
+    (_ cd then else)
+    (cond
+        [*cd *then]
+        [#t *else]))
+
+;(match-macro match (ast)
 ;    (transport ast))
 
-;(macro match [
+;(match-macro match [
 ;    (_ expr [pattern result] ...)
 ;    (transport )])

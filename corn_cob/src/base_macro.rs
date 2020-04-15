@@ -15,8 +15,7 @@ use crate::context::{
 use super::preprocessor::dyn_match;
 use crate::utils::{nil, internal_parse_simple_expr, ipse};
 
-// const MACRO_DEFINE_PATTERN: &'static str = "(name [pattern template] ...)";
-const MACRO_DEFINE_PATTERN: &'static str = include_str!("../meta_derive/macro.corn");
+const MACRO_DEFINE_PATTERN: &'static str = include_str!("../meta_derive/match-macro.corn");
 
 pub fn macro_define_wrapper(context: &CompileContext, sexprs: &SExpr) -> CResult {
 	let records = dyn_match(
@@ -43,7 +42,7 @@ pub fn macro_define_wrapper(context: &CompileContext, sexprs: &SExpr) -> CResult
 #[inline]
 fn macro_define_wrapper_register__(context: &CompileContext) {
 	context.register_native_macro(
-		&"macro".to_string(),
+		&"match-macro".to_string(),
 		internal_parse_simple_expr(MACRO_DEFINE_PATTERN),
 		macro_define_wrapper);
 }
