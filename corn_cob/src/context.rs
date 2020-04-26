@@ -115,7 +115,7 @@ pub enum MacroDefine {
 	SyntaxRule(SyntaxRuleDefine)
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum BuiltinType {
 	Top,
 	Bot,
@@ -134,9 +134,19 @@ pub enum BuiltinType {
 }
 
 impl BuiltinType {
+	/*
+	pub fn assert(&self, other: &Self) -> Result<Self, CompileError> {
+		if self == other {
+			Ok(self.clone())
+		} else {
+			Err(CompileError())
+		}
+	}
+	*/
 	pub fn assert(&self, other: &Self) -> Result<Self, CompileError> {
 		Ok(match (self, other) {
-			(BuiltinType::Top, _) => other.clone(),
+			// (BuiltinType::Top, _) => other.clone(),
+			(BuiltinType::Top, _) |
 			(BuiltinType::Bot, _) |
 			(BuiltinType::Unit, BuiltinType::Unit) |
 			(BuiltinType::Bool, BuiltinType::Bool) |
