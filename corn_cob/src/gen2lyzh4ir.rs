@@ -2,6 +2,7 @@ use crate::context::*;
 use crate::utils::{sym, ipse, UniqueID, concat_vec};
 use crate::context::SExpr::List;
 use crate::preprocessor::dyn_match;
+use crate::context::TypeExpr::Built;
 
 struct IrSExpr (pub SExpr);
 
@@ -29,7 +30,8 @@ match_gen!(function_match, "../meta_derive/function.corn");
 
 
 pub fn weak_type_inference(_expr: &SExpr) -> TypeExpr {
-	unimplemented!()
+	//FIXME: implement
+	TypeExpr::Built(BuiltinType::Top)
 }
 
 pub fn weak_type_check(expr: &SExpr, tp: &TypeExpr) -> Result<TypeExpr, CompileError> {
@@ -47,28 +49,28 @@ lazy_static! {
 	static ref COND_LABEL_NAME: UniqueID = Default::default();
 }
 
-fn cond_codegen(rc: RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
+fn cond_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
 	let records = cond_match(sexprs)?;
 	let boolexprs = records.1.get("boolexpr").unwrap();
 	let exprs = records.1.get("expr").unwrap();
+	let end_label: String = COND_LABEL_NAME.next();
 	(boolexprs
 		.iter()
-		.map(|expr|
-			weak_type_check(expr, &TypeExpr::Built(BuiltinType::Bool)))
+		.map(|expr| weak_type_check(expr, &TypeExpr::Built(BuiltinType::Bool)))
 		.collect::<Result<Vec<_>, _>>()? as Vec<_>)
 		.iter()
 		.zip(boolexprs.iter())
 		.zip(exprs.iter())
-		.fold(Ok((rc, Vec::new())),
-			|result: Result<(RuntimeContext, Vec<SExpr>), CompileError>, ((tp, boolexpr), expr)| {
+		.fold(Ok((rc.clone(), Vec::new())),
+			|result: CodeGenResult, ((tp, boolexpr), expr)| {
 				let (rc, prev_expr) = result?;
 				match tp {
 					TypeExpr::Built(BuiltinType::Bot) =>
-						base_codegen(rc, boolexpr)
+						base_codegen(&rc, boolexpr)
 							.map(|(rc, res)| (rc, concat_vec(prev_expr, res))),
 					TypeExpr::Built(tp) => {
-						let (rc, mut r) = base_codegen(rc, boolexpr)?;
-						let (rc, code_block) = base_codegen(rc, expr)?;
+						let (rc, mut r) = base_codegen(&rc, boolexpr)?;
+						let (rc, code_block) = base_codegen(&rc, expr)?;
 						let label: String = COND_LABEL_NAME.next();
 						match tp {
 							BuiltinType::Top => r.push(ipse("(dyn-cast builtin.bool)")),
@@ -77,19 +79,24 @@ fn cond_codegen(rc: RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
 						}
 						r.push(ipse(&format!("(if-false-jump {})", label)));
 						r.extend(code_block.into_iter());
+						r.push(ipse(&format!("(jump {})", end_label)));
 						r.push(ipse(&format!("(:label {})", label)));
 						Ok((rc, r))
 					},
 					_ => unreachable!()
 				}
-			}
-		)
+			})
+		.map(|(rt, mut r)| {
+			r.push(ipse("(built-exception-throw \"Conditional branch is not captured\")"));
+			r.push(ipse(&format!("(:label {})", end_label)));
+			(rt, r)
+		})
 }
 
-pub fn base_codegen(rc: RuntimeContext, expr: &SExpr) -> CodeGenResult {
+pub fn base_codegen(rc: &RuntimeContext, expr: &SExpr) -> CodeGenResult {
 	match expr {
-		SExpr::Atom(Atom::Sym(_name)) => unimplemented!(),
-		SExpr::Atom(_) => Ok((rc, vec![List(vec![sym("load-const"), expr.clone()])])),
+		SExpr::Atom(Atom::Sym(_name)) => Ok((rc.clone(), vec![List(vec![sym("load-sym"), expr.clone()])])),
+		SExpr::Atom(_) => Ok((rc.clone(), vec![List(vec![sym("load-const"), expr.clone()])])),
 		SExpr::List(_) =>
 			if let Ok(r) = cond_codegen(rc, expr) {
 				Ok(r)

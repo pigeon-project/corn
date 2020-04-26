@@ -1,9 +1,10 @@
 // use std::path::Display;
 use std::sync::{Arc, RwLock};
-use std::fmt::{Debug, Formatter};
+use std::fmt::{Debug, Formatter, Display};
 use std::collections::HashMap;
 
 use serde::{Serialize, Deserialize};
+use std::fmt;
 // use std::hash::{Hash, Hasher};
 
 
@@ -22,12 +23,45 @@ pub enum Atom {
 	Sym(Name),
 }
 
+impl ToString for Atom {
+	fn to_string(&self) -> String {
+		match self {
+			Atom::Nil => "nil".to_string(),
+			Atom::Bool(v) => v.to_string(),
+			Atom::Int(v) => v.to_string(),
+			Atom::Uint(v) => v.to_string(),
+			Atom::Float(v) => v.to_string(),
+			Atom::Char(v) => format!("'{}'", v),
+			Atom::Str(v) => format!("\"{}\"", v),// FIXME: escape
+			Atom::Sym(v) => v.to_string(),
+		}
+	}
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum SExpr {
 	Atom(Atom),
 	List(Vec<SExpr>),
 	// Tuple(Vec<SExpr>),
 	// Pair(Box<(SExpr, SExpr)>)
+}
+
+impl ToString for SExpr {
+	fn to_string(&self) -> String {
+		match self {
+			SExpr::Atom(a) => a.to_string(),
+			SExpr::List(exprs) => format!("({})", exprs
+				.iter()
+				.fold(String::new(),
+				      |mut res, e| {
+					      if res.len() != 0 {
+						      res.push(' ');
+					      }
+					      res.push_str(&e.to_string());
+					      res
+				      })),
+		}
+	}
 }
 
 impl SExpr {
@@ -102,8 +136,8 @@ pub enum BuiltinType {
 impl BuiltinType {
 	pub fn assert(&self, other: &Self) -> Result<Self, CompileError> {
 		Ok(match (self, other) {
+			(BuiltinType::Top, _) => other.clone(),
 			(BuiltinType::Bot, _) |
-			(_, BuiltinType::Top) => other.clone(),
 			(BuiltinType::Unit, BuiltinType::Unit) |
 			(BuiltinType::Bool, BuiltinType::Bool) |
 			(BuiltinType::Char, BuiltinType::Char) |

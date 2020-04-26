@@ -217,14 +217,16 @@ VM支持包括
     - `(mod-i64)`
     - `(mod-i64)`
 - dynamic
-    - `(load-local-dyn  <symbol-pool:index>)`
-    - `(load-item-dyn   <symbol-pool:index>)`
-    - `(store-local-dyn <symbol-pool:index>)`
-    - `(store-item-dyn  <symbol-pool:index>)`
-    - `(store-item-dyn  <symbol-pool:index>)`
-    - `(typeof      <typeinfo-pool:index>)`
-    - `(instanseof  <typeinfo-pool:index>)`
-    - `(dyn-cast    <typeinfo-pool:index>)`
+    - `(load-sym   <symbol>)`
+    - `(store-sym   <symbol>)`
+    - `(load-local-dyn  <symbol>)`
+    - `(load-item-dyn   <symbol>)`
+    - `(store-local-dyn <symbol>)`
+    - `(store-item-dyn  <symbol>)`
+    - `(store-item-dyn  <symbol>)`
+    - `(typeof      <typeinfo>)`
+    - `(instanseof  <typeinfo>)`
+    - `(dyn-cast    <typeinfo>)`
 
 
 ### 字节码编号：随具体实现而定（暂时）
