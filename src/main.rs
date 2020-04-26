@@ -27,7 +27,7 @@ fn repl(compile_context: &CompileContext) -> ! {
         let rt = RuntimeContext::default();
         println!("raw out: {:?}", r);
         if let Some(x) = r {
-            let _ = x.iter()
+            x.iter()
                 .map(|e| preprocess(compile_context, e))
                 //.map(|e| { println!("macro-expand: {:?}", e); e })
                 .map(|e| { println!("macro-expand: {:?}", e); e.unwrap() })
