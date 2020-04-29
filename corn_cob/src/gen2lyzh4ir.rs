@@ -61,7 +61,7 @@ fn begin_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
 		}
 	}
 	let exprs = &exprs[0..=cutting_line];
-	let result = (exprs
+	exprs
 		.iter()
 		.fold(Ok((rc.clone(), Vec::new())),
 		      |prev, expr| {
@@ -69,10 +69,6 @@ fn begin_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
 			      let (rc, res) = base_codegen(&rc, expr)?;
 			      Ok((rc, concat_vec(prev_expr, res)))
 		      })
-		.collect::<Result<Vec<_>, _>>()? as Vec<_>);
-		// .reduce(|a, b| a + b) as Option<&Vec<SExpr>>
-		// .map_or(vec![], |v| v.to_vec());
-	Ok((rc.clone(), result))
 }
 
 fn cond_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {

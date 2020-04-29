@@ -32,9 +32,9 @@ pub fn concat_vec(mut a: Vec<SExpr>, b: Vec<SExpr>) -> Vec<SExpr> {
 	a
 }
 
-pub fn concat_vec_list<T>(i: &[Vec<T>]) -> Option<&Vec<T>> {
-	 i.iter().reduce(|a, b| a + b)
-}
+// pub fn concat_vec_list<T>(i: &[Vec<T>]) -> Option<&Vec<T>> {
+// 	 i.into_iter().reduce(|a, b| a + b)
+// }
 
 #[derive(Debug, Default)]
 pub struct UniqueID {
