@@ -1,6 +1,8 @@
 use std::sync::atomic::AtomicU32;
 use std::sync::atomic::Ordering;
 
+use reduce::Reduce;
+
 use crate::context::SExpr;
 use crate::context::Atom;
 use crate::parser::parse;
@@ -28,6 +30,10 @@ pub fn ipse(input: &str) -> SExpr {
 pub fn concat_vec(mut a: Vec<SExpr>, b: Vec<SExpr>) -> Vec<SExpr> {
 	a.extend(b.into_iter());
 	a
+}
+
+pub fn concat_vec_list<T>(i: &[Vec<T>]) -> Option<&Vec<T>> {
+	 i.iter().reduce(|a, b| a + b)
 }
 
 #[derive(Debug, Default)]

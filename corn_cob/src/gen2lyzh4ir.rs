@@ -24,6 +24,7 @@ macro_rules! match_gen {
     };
 }
 
+match_gen!(begin_match, "../meta_derive/begin.corn");
 match_gen!(cond_match, "../meta_derive/cond.corn");
 match_gen!(lambda_match, "../meta_derive/lambda.corn");
 match_gen!(function_match, "../meta_derive/function.corn");
@@ -47,6 +48,31 @@ type CodeGenResult = Result<(RuntimeContext, Vec<SExpr>), CompileError>;
 
 lazy_static! {
 	static ref COND_LABEL_NAME: UniqueID = Default::default();
+}
+
+fn begin_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
+	let records = begin_match(sexprs)?;
+	let exprs = records.1.get("expr").unwrap();
+	let mut cutting_line = exprs.len()-1;
+	for (sz, expr) in exprs.iter().enumerate() {
+		if let TypeExpr::Built(BuiltinType::Top) = weak_type_inference(expr) {
+			cutting_line = sz;
+			break
+		}
+	}
+	let exprs = &exprs[0..=cutting_line];
+	let result = (exprs
+		.iter()
+		.fold(Ok((rc.clone(), Vec::new())),
+		      |prev, expr| {
+			      let (rc, prev_expr) = prev?;
+			      let (rc, res) = base_codegen(&rc, expr)?;
+			      Ok((rc, concat_vec(prev_expr, res)))
+		      })
+		.collect::<Result<Vec<_>, _>>()? as Vec<_>);
+		// .reduce(|a, b| a + b) as Option<&Vec<SExpr>>
+		// .map_or(vec![], |v| v.to_vec());
+	Ok((rc.clone(), result))
 }
 
 fn cond_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
@@ -99,6 +125,8 @@ pub fn base_codegen(rc: &RuntimeContext, expr: &SExpr) -> CodeGenResult {
 		SExpr::Atom(_) => Ok((rc.clone(), vec![List(vec![sym("load-const"), expr.clone()])])),
 		SExpr::List(_) =>
 			if let Ok(r) = cond_codegen(rc, expr) {
+				Ok(r)
+			} else if let Ok(r) = begin_codegen(rc, expr) {
 				Ok(r)
 			} else {
 				unreachable!()
