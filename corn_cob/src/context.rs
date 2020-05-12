@@ -5,6 +5,7 @@ use std::collections::HashMap;
 
 use serde::{Serialize, Deserialize};
 use std::fmt;
+use std::cell::RefCell;
 // use std::hash::{Hash, Hasher};
 
 
@@ -168,7 +169,8 @@ pub enum TypeExpr {
 	Built(BuiltinType),
 	Tuple(Vec<TypeExpr>),
 	Union(Vec<TypeExpr>),
-	Apply(Vec<TypeExpr>),
+	Arrow(Vec<TypeExpr>),
+	Aplay(Name, Vec<TypeExpr>),
 }
 
 impl TypeExpr {
@@ -184,10 +186,12 @@ impl TypeExpr {
 
 #[derive(Debug)]
 pub struct FunctionDefine {
-	pub pure_flag: bool,
+	pub name: Name,
+	pub pure_flag: Option<bool>,
 	// pub async_flag: bool,
-	pub typeinfo: Vec<TypeExpr>,
-	pub ast: Box<SExpr>,
+	pub typeinfo: Option<TypeExpr>,
+	pub args: Vec<Name>,
+	pub code_block: Vec<SExpr>,
 }
 
 #[derive(Debug)]
@@ -198,7 +202,7 @@ pub struct TypeDefine {
 #[derive(Debug, Default)]
 pub struct CompileContext {
 	pub macro_defines   : RwLock<HashMap<String, Arc<MacroDefine>>>,
-	pub function_defines: RwLock<HashMap<String, Arc<FunctionDefine>>>,
+	// pub function_defines: RwLock<HashMap<String, Arc<FunctionDefine>>>,
 	pub type_defines    : RwLock<HashMap<String, Arc<TypeDefine>>>,
 }
 
@@ -229,8 +233,8 @@ pub struct CodeBlock {
 
 #[derive(Clone, Default)]
 pub struct RuntimeContext {
-	pub type_defines    : HashMap<String, Arc<TypeDefine>>,
-	pub function_defines: HashMap<String, Arc<CodeBlock>>,
+	pub type_defines    : RefCell<HashMap<String, Arc<TypeDefine>>>,
+	pub function_defines: RefCell<HashMap<String, Arc<FunctionDefine>>>,
 }
 
 impl RuntimeContext {
@@ -238,7 +242,16 @@ impl RuntimeContext {
 		Default::default()
 	}
 	
-	fn find_function(&self, sym: &str) -> Option<&Arc<CodeBlock>> {
-		self.function_defines.get(sym)
+	pub fn register_function(&self, k: &Name, v: FunctionDefine) {
+		self.function_defines
+			.borrow_mut()
+			.insert(k.clone(), Arc::new(v));
+	}
+	
+	fn find_function(&self, sym: &str) -> Option<Arc<FunctionDefine>> {
+		self.function_defines
+			.borrow()
+			.get(sym)
+			.map(|x|x.clone())
 	}
 }

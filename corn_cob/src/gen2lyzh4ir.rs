@@ -26,6 +26,8 @@ macro_rules! match_gen {
 
 match_gen!(begin_match, "../meta_derive/begin.corn");
 match_gen!(cond_match, "../meta_derive/cond.corn");
+match_gen!(while_match, "../meta_derive/while.corn");
+// match_gen!(loop_match, "../meta_derive/loop.corn");
 match_gen!(lambda_match, "../meta_derive/lambda.corn");
 match_gen!(function_match, "../meta_derive/function.corn");
 
@@ -39,15 +41,30 @@ pub fn weak_type_check(expr: &SExpr, tp: &TypeExpr) -> Result<TypeExpr, CompileE
 	weak_type_inference(expr).assert(tp)
 }
 
-trait Generable {
-	type Output;
-	fn gen2(self: Self, rc: &CompileContext) -> Self::Output;
-}
+// trait Generable {
+// 	type Output;
+// 	fn gen2(self: Self, rc: &CompileContext) -> Self::Output;
+// }
 
 type CodeGenResult = Result<(RuntimeContext, Vec<SExpr>), CompileError>;
 
 lazy_static! {
 	static ref COND_LABEL_NAME: UniqueID = Default::default();
+}
+
+fn next_name() -> String {
+	COND_LABEL_NAME.next()
+}
+
+fn vec_expr_codegen(rc: &RuntimeContext, input: &[SExpr]) -> CodeGenResult {
+	input
+		.iter()
+		.fold(Ok((rc.clone(), Vec::new())),
+		      |prev, expr| {
+			      let (rc, prev_expr) = prev?;
+			      let (rc, res) = base_codegen(&rc, expr)?;
+			      Ok((rc, concat_vec(prev_expr, res)))
+		      })
 }
 
 fn begin_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
@@ -61,21 +78,14 @@ fn begin_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
 		}
 	}
 	let exprs = &exprs[0..=cutting_line];
-	exprs
-		.iter()
-		.fold(Ok((rc.clone(), Vec::new())),
-		      |prev, expr| {
-			      let (rc, prev_expr) = prev?;
-			      let (rc, res) = base_codegen(&rc, expr)?;
-			      Ok((rc, concat_vec(prev_expr, res)))
-		      })
+	vec_expr_codegen(rc,exprs)
 }
 
 fn cond_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
 	let records = cond_match(sexprs)?;
 	let boolexprs = records.1.get("boolexpr").unwrap();
 	let exprs = records.1.get("expr").unwrap();
-	let end_label: String = COND_LABEL_NAME.next();
+	let end_label: String = next_name();
 	(boolexprs
 		.iter()
 		.map(|expr| weak_type_check(expr, &TypeExpr::Built(BuiltinType::Bool)))
@@ -93,7 +103,7 @@ fn cond_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
 					TypeExpr::Built(tp) => {
 						let (rc, mut r) = base_codegen(&rc, boolexpr)?;
 						let (rc, code_block) = base_codegen(&rc, expr)?;
-						let label: String = COND_LABEL_NAME.next();
+						let label: String = next_name();
 						match tp {
 							BuiltinType::Top => r.push(ipse("(dyn-cast builtin.bool)")),
 							BuiltinType::Bool => (),
@@ -113,6 +123,58 @@ fn cond_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
 			r.push(ipse(&format!("(:label {})", end_label)));
 			(rt, r)
 		})
+}
+
+fn lambda_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
+	let records = lambda_match(sexprs)?;
+	let vars = records.1.get("var").unwrap();
+	let exprs = records.1.get("expr").unwrap();
+	let vars: Vec<Name> = vars.iter()
+		.map(|this|
+			match this {
+				SExpr::Atom(Atom::Sym(x)) => Ok(x.clone()),
+				_ => Err(CompileError())
+			}).collect::<Result<Vec<Name>, CompileError>>()?;
+	let (rc, exprs) = vec_expr_codegen(rc, exprs)?;
+	let name = next_name();
+	let funbody =
+		FunctionDefine {
+			name: name.clone(),
+			pure_flag: None,
+			typeinfo: None,
+			args: vars,
+			code_block: exprs
+		};
+	rc.register_function(&name, funbody);
+	Ok((rc.clone(), vec![]))
+}
+
+fn function_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
+	let records = function_match(sexprs)?;
+	let name = records.0.get("name").unwrap();
+	let name = match name {
+		SExpr::Atom(Atom::Sym(x)) => x,
+		_ => return Err(CompileError())
+	};
+	let vars = records.1.get("var").unwrap();
+	let exprs = records.1.get("expr").unwrap();
+	let vars: Vec<Name> = vars.iter()
+		.map(|this|
+			match this {
+				SExpr::Atom(Atom::Sym(x)) => Ok(x.clone()),
+				_ => Err(CompileError())
+			}).collect::<Result<Vec<Name>, CompileError>>()?;
+	let (rc, exprs) = vec_expr_codegen(rc, exprs)?;
+	let funbody =
+		FunctionDefine {
+			name: name.clone(),
+			pure_flag: None,
+			typeinfo: None,
+			args: vars,
+			code_block: exprs
+		};
+	rc.register_function(name, funbody);
+	Ok((rc.clone(), vec![]))
 }
 
 pub fn base_codegen(rc: &RuntimeContext, expr: &SExpr) -> CodeGenResult {

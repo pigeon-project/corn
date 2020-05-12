@@ -126,6 +126,7 @@ fn parse_sexpr(node: &Pair<Rule>) -> SExpr {
 	}
 }
 
+#[inline]
 pub fn parse(src: &str) -> Option<Vec<SExpr>> {
 	let r: Result<Pairs<Rule>, _> = CornParser::parse(Rule::corn, src);
 	// eprintln!("src result: {}", r.clone().ok()?);
