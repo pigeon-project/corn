@@ -128,14 +128,14 @@ fn cond_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
 fn lambda_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
 	let records = lambda_match(sexprs)?;
 	let vars = records.1.get("var").unwrap();
-	let exprs = records.1.get("expr").unwrap();
+	let bodys = records.1.get("body").unwrap();
 	let vars: Vec<Name> = vars.iter()
 		.map(|this|
 			match this {
 				SExpr::Atom(Atom::Sym(x)) => Ok(x.clone()),
 				_ => Err(CompileError())
 			}).collect::<Result<Vec<Name>, CompileError>>()?;
-	let (rc, exprs) = vec_expr_codegen(rc, exprs)?;
+	let (rc, bodys) = vec_expr_codegen(rc, bodys)?;
 	let name = next_name();
 	let funbody =
 		FunctionDefine {
@@ -143,7 +143,7 @@ fn lambda_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
 			pure_flag: None,
 			typeinfo: None,
 			args: vars,
-			code_block: exprs
+			code_block: bodys
 		};
 	rc.register_function(&name, funbody);
 	Ok((rc.clone(), vec![]))
@@ -157,23 +157,23 @@ fn function_codegen(rc: &RuntimeContext, sexprs: &SExpr) -> CodeGenResult {
 		_ => return Err(CompileError())
 	};
 	let vars = records.1.get("var").unwrap();
-	let exprs = records.1.get("expr").unwrap();
+	let bodys = records.1.get("body").unwrap();
 	let vars: Vec<Name> = vars.iter()
 		.map(|this|
 			match this {
 				SExpr::Atom(Atom::Sym(x)) => Ok(x.clone()),
 				_ => Err(CompileError())
 			}).collect::<Result<Vec<Name>, CompileError>>()?;
-	let (rc, exprs) = vec_expr_codegen(rc, exprs)?;
-	let funbody =
+	let (rc, bodys) = vec_expr_codegen(rc, bodys)?;
+	let fun_body =
 		FunctionDefine {
 			name: name.clone(),
 			pure_flag: None,
 			typeinfo: None,
 			args: vars,
-			code_block: exprs
+			code_block: bodys
 		};
-	rc.register_function(name, funbody);
+	rc.register_function(name, fun_body);
 	Ok((rc.clone(), vec![]))
 }
 
@@ -185,6 +185,10 @@ pub fn base_codegen(rc: &RuntimeContext, expr: &SExpr) -> CodeGenResult {
 			if let Ok(r) = cond_codegen(rc, expr) {
 				Ok(r)
 			} else if let Ok(r) = begin_codegen(rc, expr) {
+				Ok(r)
+			} else if let Ok(r) = lambda_codegen(rc, expr) {
+				Ok(r)
+			} else if let Ok(r) = function_codegen(rc, expr) {
 				Ok(r)
 			} else {
 				unreachable!()
