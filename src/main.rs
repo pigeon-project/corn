@@ -18,6 +18,9 @@ use corn_cob::utils::*;
 
 
 fn repl(compile_context: &CompileContext) -> ! {
+    for expr in parse(include_str!("../script/core/macro.corn")).unwrap() {
+        preprocess(compile_context, &expr);
+    }
     loop {
         io::stdout().write("λ ".as_ref()).unwrap();
         io::stdout().flush().unwrap();
@@ -52,8 +55,7 @@ fn main() {
                         &internal_parse_simple_expr("(macro t1 [(_ a) (*a)])")));
     // println!("out: {:?}",
     //          preprocess(&compile_context,
-    //                     &internal_parse_simple_expr("(macro let [(_ ([var expr] ...) body ...) ((lambda (var ...) body ...) expr ...)])")));
-    
+    //                     &internal_parse_simple_expr("(defn (id a) a)")));
     repl(&compile_context);
     // println!("out: {:?}",
     //          apply_macro(
