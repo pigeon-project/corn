@@ -8,4 +8,4 @@ edition = "2018"
 
 [dependencies]
 corn_cob = { path = 'corn_cob' }
-
+lazy_static = "1.4.0"

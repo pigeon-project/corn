@@ -13,7 +13,7 @@ pub mod parser;
 pub mod context;
 pub mod preprocessor;
 pub mod base_macro;
-pub mod gen2lyzh4ir;
+// pub mod gen2lyzh4ir;
 pub mod utils;
 
 #[cfg(test)]

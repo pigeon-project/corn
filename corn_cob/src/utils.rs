@@ -1,9 +1,7 @@
 use std::sync::atomic::AtomicU32;
 use std::sync::atomic::Ordering;
 
-use reduce::Reduce;
-
-use crate::context::SExpr;
+use crate::context::{SExpr, CompileError};
 use crate::context::Atom;
 use crate::parser::parse;
 
